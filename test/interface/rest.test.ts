@@ -131,6 +131,13 @@ describe('Test REST', () => {
         expect(registeredPaths.get('get')).to.include(`/login`);
         expect(registeredPaths.get('get')).to.include(`/dashboard`);
 
+        // public (no-auth) branding endpoint is registered directly on express
+        expect(registeredPaths.get('get')).to.include(`/api/branding`);
+        // and returns a complete branding object (defaults merged) even when unconfigured
+        const branding = rest['getBranding']();
+        expect(branding.title).to.be.a('string');
+        expect(branding.colors.primary).to.be.a('string');
+
         interfaceService.commandMap.forEach(
             (template, key) => {
                 if (!template.disableRest) {

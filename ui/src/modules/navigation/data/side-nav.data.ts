@@ -14,6 +14,7 @@ export const sideNavSections: SideNavSection[] = [
             'logs',
             'maintenance',
             'settings',
+            'branding',
             'map',
             'maploot',
         ],
@@ -61,6 +62,11 @@ export const sideNavItems: SideNavItems = {
         icon: 'cogs',
         text: 'Settings',
         link: '/dashboard/settings',
+    },
+    branding: {
+        icon: 'palette',
+        text: 'Branding',
+        link: '/dashboard/branding',
     },
     map: {
         icon: 'map',

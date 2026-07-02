@@ -1,0 +1,28 @@
+@import 'styles/variables.scss';
+
+.spaced {
+    margin-bottom: 1rem;
+}
+
+.brand-swatch {
+    width: 42px;
+    height: 38px;
+    padding: 2px;
+    border: 1px solid $border-color;
+    border-radius: 0.25rem;
+    background: none;
+    cursor: pointer;
+}
+
+.brand-image-preview {
+    display: inline-block;
+    padding: 0.5rem;
+    border: 1px dashed $border-color;
+    border-radius: 0.25rem;
+
+    img {
+        max-height: 90px;
+        max-width: 100%;
+        display: block;
+    }
+}
