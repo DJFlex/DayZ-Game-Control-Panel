@@ -100,25 +100,27 @@ describe('Test REST', () => {
             registeredRouterPaths.set(key, registeredRouterPaths.get(key) ?? []);
             registeredRouterPaths.get(key)!.push(value);
         };
-        rest.router = {
+        const mockRouter = {
             get: (path, handler) => {
                 ensureArray('get', path);
-                return rest.router;
+                return mockRouter;
             },
             post: (path, handler) => {
                 ensureArray('post', path);
-                return rest.router;
+                return mockRouter;
             },
             delete: (path, handler) => {
                 ensureArray('delete', path);
-                return rest.router;
+                return mockRouter;
             },
             put: (path, handler) => {
                 ensureArray('put', path);
-                return rest.router;
+                return mockRouter;
             },
             use: (x, y) => {},
         } as Router;
+        // start() now builds a fresh router via createRouter() on every start
+        sinon.stub(rest, 'createRouter').returns(mockRouter);
 
         await rest.start();
         await rest.stop();
