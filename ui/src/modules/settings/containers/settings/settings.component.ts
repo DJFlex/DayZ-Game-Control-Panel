@@ -106,6 +106,40 @@ export class SettingsComponent implements OnInit {
         });
     }
 
+    public addAdmin(): void {
+        if (!this.config.admins) {
+            this.config.admins = [];
+        }
+        this.config.admins.push({
+            userId: '',
+            userLevel: 'moderate',
+            password: this.randomToken(),
+        });
+    }
+
+    public removeAdmin(idx: number): void {
+        // never allow removing the last admin (would lock everyone out)
+        if (this.config.admins && this.config.admins.length > 1) {
+            this.config.admins.splice(idx, 1);
+        }
+    }
+
+    public generateAdminPassword(admin: { password: string }): void {
+        admin.password = this.randomToken();
+    }
+
+    private randomToken(): string {
+        const cryptoObj = (typeof window !== 'undefined' ? window.crypto : undefined) as Crypto | undefined;
+        if (cryptoObj?.randomUUID) {
+            return cryptoObj.randomUUID();
+        }
+        if (cryptoObj?.getRandomValues) {
+            const bytes = cryptoObj.getRandomValues(new Uint8Array(16));
+            return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+        }
+        return `${Math.random().toString(36).slice(2)}${Math.random().toString(36).slice(2)}`;
+    }
+
     private getServerCfgProps(config: Config): Property[] {
         const fixedKeys = ['motd', 'motdInterval', 'Missions'] as ServerCfgKey[];
 
