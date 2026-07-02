@@ -112,6 +112,28 @@ WriteOperationCount=612
 WriteTransferCount=20544
 `;
 
+// Output shape of the PowerShell Win32_Process query
+// (exactly the requested keys, records separated by a single blank line)
+export const POWERSHELL_PROCESS_OUTPUT = `
+Name=DayZServer_x64.exe
+ProcessId=1337
+ExecutablePath=C:\\DayZServer\\DayZServer_x64.exe
+CommandLine="C:\\DayZServer\\DayZServer_x64.exe" -config=serverDZ.cfg
+PrivatePageCount=221327360
+CreationDate=20210513105049.000000+000
+UserModeTime=1351406250
+KernelModeTime=2151093750
+
+Name=System Idle Process
+ProcessId=0
+ExecutablePath=
+CommandLine=
+PrivatePageCount=8192
+CreationDate=
+UserModeTime=123
+KernelModeTime=456
+`;
+
 describe('Test class ProcessEntry', () => {
 
     it('ProcessEntry-Name', () => {
@@ -208,6 +230,31 @@ describe('Test class WinProcessFetcher', () => {
         expect(result.length).to.equal(2);
         expect(result[0].ProcessId).to.equal('14300');
         expect(result[0].ExecutablePath).to.equal('C:\\Discord\\app-1.0.X\\Discord.exe');
+    });
+
+    it('WinProcesses-getProcessList-powershell', async () => {
+        const processes = injector.resolve(WindowsProcessFetcher);
+
+        (injector.resolve(Paths).samePath as sinon.SinonStub)
+            .returns(false)
+            .withArgs('C:\\DayZServer\\DayZServer_x64.exe', 'C:\\DayZServer\\DayZServer_x64.exe').returns(true);
+
+        const spawnStub = (injector.resolve(ProcessSpawner).spawnForOutput as sinon.SinonStub).returns({
+            status: 0,
+            stdout: POWERSHELL_PROCESS_OUTPUT,
+            stderr: '',
+        });
+
+        const result = await processes.getProcessList('C:\\DayZServer\\DayZServer_x64.exe');
+
+        // wmic.exe no longer exists on Windows 11 24H2+, powershell is used instead
+        expect(spawnStub.firstCall.args[0]).to.equal('powershell');
+        expect(spawnStub.firstCall.args[1].join(' ')).to.include('Get-CimInstance');
+
+        expect(result.length).to.equal(1);
+        expect(result[0].ProcessId).to.equal('1337');
+        expect(result[0].Name).to.equal('DayZServer_x64.exe');
+        expect(result[0].CreationDate).to.equal('20210513105049.000000+000');
     });
 
 });
