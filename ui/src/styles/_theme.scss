@@ -1,0 +1,295 @@
+// =============================================================================
+//  Dark theme + brand-colour custom properties
+//
+//  Design:
+//   - Brand colours are exposed as CSS custom properties on :root with defaults
+//     that reproduce the stock Bootstrap look. The BrandingService overwrites
+//     them at runtime (both themes use the same variables).
+//   - The dark theme is applied by setting `data-theme="dark"` on <html>
+//     (ThemeService + an inline no-flash script in index.html). ALL dark rules
+//     are gated behind `html[data-theme="dark"]`, so the light theme is left
+//     byte-for-byte as it was before this file existed.
+//   - The dark palette lives in SCSS variables below for maintainability.
+// =============================================================================
+
+// ----- Brand colour custom properties (defaults = stock look) ----------------
+:root {
+    --brand-primary: #007bff;
+    --brand-accent: #0056b3;
+    --brand-sidebar: #212529;
+    --brand-card: #007bff;
+}
+
+// Brand-primary driven accents (apply in BOTH themes; defaults match Bootstrap)
+.btn-primary {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--brand-accent);
+    border-color: var(--brand-accent);
+}
+.btn-outline-primary {
+    color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+.btn-outline-primary:hover {
+    background-color: var(--brand-primary);
+    border-color: var(--brand-primary);
+}
+a {
+    color: var(--brand-primary);
+}
+a:hover {
+    color: var(--brand-accent);
+}
+// The dashboard metric tile that uses .bg-primary follows the brand card colour
+.card.bg-primary {
+    background-color: var(--brand-card) !important;
+}
+// Sidebar background follows the brand colour (default #212529 == $gray-900, the
+// stock sb-sidenav-dark background, so the default look is unchanged)
+.sb-sidenav-dark {
+    background-color: var(--brand-sidebar);
+}
+
+// ----- Dark palette ----------------------------------------------------------
+$d-bg: #1b1e24;
+$d-surface: #262b33;
+$d-surface-2: #2d333d;
+$d-border: #3a414d;
+$d-text: #e6e8eb;
+$d-muted: #9aa2ad;
+$d-input-bg: #2d333d;
+$d-input-border: #454d5a;
+
+html[data-theme='dark'] {
+    background-color: $d-bg;
+
+    body {
+        background-color: $d-bg;
+        color: $d-text;
+    }
+
+    #layoutSidenav_content {
+        background-color: $d-bg;
+    }
+
+    main {
+        color: $d-text;
+    }
+
+    // ---- surfaces / cards ----
+    .card {
+        background-color: $d-surface;
+        border-color: $d-border;
+        color: $d-text;
+    }
+    .card-header,
+    .card-footer {
+        background-color: $d-surface-2;
+        border-color: $d-border;
+        color: $d-text;
+    }
+
+    // footer + any bg-light surfaces
+    .bg-light {
+        background-color: $d-surface-2 !important;
+        color: $d-text;
+    }
+    footer .text-muted,
+    footer .text-muted a {
+        color: $d-muted !important;
+    }
+
+    // ---- text helpers ----
+    .text-muted {
+        color: $d-muted !important;
+    }
+    hr {
+        border-top-color: $d-border;
+    }
+    pre {
+        color: $d-muted;
+    }
+    label {
+        color: $d-text;
+    }
+
+    // ---- forms / inputs ----
+    .form-control,
+    .custom-select,
+    select.form-control,
+    textarea.form-control {
+        background-color: $d-input-bg;
+        border-color: $d-input-border;
+        color: $d-text;
+    }
+    .form-control:focus {
+        background-color: $d-input-bg;
+        color: $d-text;
+        border-color: var(--brand-primary);
+    }
+    .form-control::placeholder {
+        color: $d-muted;
+    }
+    .form-control:disabled,
+    .form-control[readonly] {
+        background-color: darken($d-input-bg, 4%);
+    }
+    .input-group-text {
+        background-color: $d-surface-2;
+        border-color: $d-input-border;
+        color: $d-text;
+    }
+    .custom-control-label {
+        color: $d-text;
+    }
+
+    // ---- tables (Players / Audit / Logs) ----
+    .table {
+        color: $d-text;
+    }
+    .table thead th {
+        border-bottom-color: $d-border;
+        color: $d-text;
+    }
+    .table td,
+    .table th {
+        border-top-color: $d-border;
+    }
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(255, 255, 255, 0.03);
+        color: $d-text;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.06);
+        color: $d-text;
+    }
+    .table-bordered,
+    .table-bordered td,
+    .table-bordered th {
+        border-color: $d-border;
+    }
+
+    // ---- modals / dropdowns / list groups / tabs ----
+    .modal-content {
+        background-color: $d-surface;
+        color: $d-text;
+    }
+    .modal-header,
+    .modal-footer {
+        border-color: $d-border;
+    }
+    .dropdown-menu {
+        background-color: $d-surface;
+        border-color: $d-border;
+        color: $d-text;
+    }
+    .dropdown-item {
+        color: $d-text;
+    }
+    .dropdown-item:hover,
+    .dropdown-item:focus {
+        background-color: $d-surface-2;
+        color: $d-text;
+    }
+    .list-group-item {
+        background-color: $d-surface;
+        border-color: $d-border;
+        color: $d-text;
+    }
+    .nav-tabs {
+        border-bottom-color: $d-border;
+    }
+    .nav-tabs .nav-link:hover {
+        border-color: $d-border;
+    }
+    .nav-tabs .nav-link.active {
+        background-color: $d-surface;
+        border-color: $d-border $d-border $d-surface;
+        color: $d-text;
+    }
+
+    // ---- buttons that are light-on-light by default ----
+    .btn-light {
+        background-color: $d-surface-2;
+        border-color: $d-border;
+        color: $d-text;
+    }
+    .btn-outline-secondary {
+        color: $d-text;
+        border-color: $d-input-border;
+    }
+    .close {
+        color: $d-text;
+        text-shadow: none;
+    }
+
+    // ---- breadcrumbs ----
+    .breadcrumb {
+        background-color: $d-surface-2;
+        color: $d-text;
+    }
+    .breadcrumb-item.active {
+        color: $d-muted;
+    }
+
+    // ---- muted metric tiles (bright Bootstrap contextual bg on a .card) ----
+    // .card.bg-primary is handled above via --brand-card
+    .card.bg-success {
+        background-color: #24603f !important;
+    }
+    .card.bg-danger {
+        background-color: #7a2e33 !important;
+    }
+    .card.bg-warning {
+        background-color: #7a5a1e !important;
+    }
+    .card.bg-secondary {
+        background-color: #3a414d !important;
+    }
+    .card.bg-info {
+        background-color: #1f5f6b !important;
+    }
+
+    // ---- ag-grid (Types editor) : alpine theme dark tokens ----
+    .ag-theme-alpine {
+        --ag-background-color: #{$d-surface};
+        --ag-odd-row-background-color: #{$d-surface-2};
+        --ag-header-background-color: #{$d-surface-2};
+        --ag-foreground-color: #{$d-text};
+        --ag-header-foreground-color: #{$d-text};
+        --ag-border-color: #{$d-border};
+        --ag-row-border-color: #{$d-border};
+        --ag-control-panel-background-color: #{$d-surface-2};
+        --ag-input-border-color: #{$d-input-border};
+        --ag-input-background-color: #{$d-input-bg};
+        --ag-selected-row-background-color: rgba(255, 255, 255, 0.08);
+        --ag-row-hover-color: rgba(255, 255, 255, 0.06);
+    }
+
+    // ---- ng-select ----
+    .ng-select .ng-select-container {
+        background-color: $d-input-bg;
+        border-color: $d-input-border;
+        color: $d-text;
+    }
+    .ng-select .ng-select-container .ng-value {
+        color: $d-text;
+    }
+    .ng-dropdown-panel {
+        background-color: $d-surface;
+        border-color: $d-border;
+    }
+    .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+        background-color: $d-surface;
+        color: $d-text;
+    }
+    .ng-dropdown-panel .ng-dropdown-panel-items .ng-option.ng-option-marked {
+        background-color: $d-surface-2;
+        color: $d-text;
+    }
+}

@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { BrandingService } from '../../../app-common/services/branding.service';
 
 @Component({
     selector: 'sb-footer',
@@ -12,6 +13,7 @@ export class FooterComponent implements OnInit {
 
     public constructor(
         private http: HttpClient,
+        public branding: BrandingService,
     ) {}
 
     public ngOnInit(): void {

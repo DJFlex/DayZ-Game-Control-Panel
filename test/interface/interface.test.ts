@@ -546,6 +546,22 @@ describe('Test Interface', () => {
         expect(configFileHelper.writeConfig.firstCall.firstArg).to.equal('test');
     });
 
+    it('execute-branding', async () => {
+        const handler = injector.resolve(Interface);
+        const request = {
+            resource: 'branding',
+            user: 'admin',
+            body: {
+                branding: { title: 'My Server' },
+            },
+        } as any as Request;
+        const response = await handler.execute(request);
+
+        expect(response.status).to.equal(200);
+        const written = JSON.parse(configFileHelper.writeConfig.firstCall.firstArg);
+        expect(written.branding.title).to.equal('My Server');
+    });
+
     it('execute-updateMods', async () => {
         steamCmd.updateAllMods.resolves(true);
         const handler = injector.resolve(Interface);

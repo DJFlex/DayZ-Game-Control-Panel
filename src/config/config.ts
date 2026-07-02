@@ -446,6 +446,94 @@ export type DiscordChannelType =
     | 'notification' // public server notifications are posted here (i.e. server restart, server update, mod update)
     ;
 
+/* eslint-disable @typescript-eslint/naming-convention */
+export class BrandingColors {
+
+    /**
+     * Primary accent colour (buttons, links, active nav, metric cards).
+     * Any CSS colour string, hex recommended. Applied in both light and dark theme.
+     */
+    public primary: string = '#007bff';
+
+    /**
+     * Secondary accent colour (hover states, highlights).
+     */
+    public accent: string = '#0056b3';
+
+    /**
+     * Sidebar background colour.
+     */
+    public sidebar: string = '#212529';
+
+    /**
+     * Background colour of the coloured metric cards on the dashboard.
+     */
+    public card: string = '#007bff';
+
+}
+
+/**
+ * White-label branding for the web interface.
+ * All images are stored as base64 data URIs (e.g. "data:image/png;base64,....")
+ * so the config stays self-contained (no upload/file serving to manage),
+ * the same approach used by {@link Config.mapHost} for the map image.
+ *
+ * Served publicly (no auth) via GET /api/branding so the login page can be
+ * branded before login. Updated by admins via POST /api/branding.
+ *
+ * The defaults reproduce the stock DayZ Server Manager look exactly, so an
+ * un-branded install is visually identical to before this feature existed.
+ */
+export class Branding {
+
+    /**
+     * Panel title. Used for the browser tab title and the top-bar/login brand text.
+     */
+    public title: string = 'DayZ Server Manager';
+
+    /**
+     * Text shown in the dashboard footer. Empty = show the default footer.
+     */
+    public footerText: string = '';
+
+    /**
+     * Heading shown on the login card.
+     */
+    public loginHeading: string = 'Login';
+
+    /**
+     * Sub-heading/tagline shown under the login heading. Empty = hidden.
+     */
+    public loginTagline: string = '';
+
+    /**
+     * Accent colours applied via CSS custom properties.
+     */
+    public colors: BrandingColors = new BrandingColors();
+
+    /**
+     * Logo shown in the top navigation bar. base64 data URI. Empty = show the title text.
+     */
+    public logoTopbar: string = '';
+
+    /**
+     * Logo shown on the login screen. base64 data URI. Empty = show the title text.
+     */
+    public logoLogin: string = '';
+
+    /**
+     * Favicon. base64 data URI. Empty = default favicon.
+     */
+    public favicon: string = '';
+
+    /**
+     * Full-page background image for the login screen. base64 data URI. Empty = default background.
+     */
+    public loginBackground: string = '';
+
+}
+/* eslint-enable @typescript-eslint/naming-convention */
+
 export class Config {
 
     /**
@@ -581,6 +669,14 @@ export class Config {
      */
     @Reflect.metadata('config-type-skip', true)
     public mapHost: string | any = 'https://mr-guard.de/dayz-maps';
+
+    /**
+     * White-label branding for the web interface (title, logos, colours, login screen).
+     * See {@link Branding}. Images are base64 data URIs. Defaults reproduce the stock look.
+     * Editable in the WebUI under the "Branding" page (admin only).
+     */
+    @Reflect.metadata('config-type-skip', true)
+    public branding: Branding = new Branding();
 
     // /////////////////////////// Discord ////////////////////////////////////
 

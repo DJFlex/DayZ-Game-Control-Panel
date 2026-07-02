@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-image: url("http://i.imgur.com/jIbjD.jpg");
+  // brandable via BrandingService (--brand-login-bg); falls back to the stock image
+  background-image: var(--brand-login-bg, url("http://i.imgur.com/jIbjD.jpg"));
   background-repeat: no-repeat;
   background-position-y: -3rem;
   background-size: cover;

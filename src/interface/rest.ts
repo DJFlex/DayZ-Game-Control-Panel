@@ -17,6 +17,7 @@ import { InternalEventTypes } from '../types/events';
 import { Listener } from 'eventemitter2';
 import { WebsocketCommand, WebsocketListenerEvent, WebsocketListenerType, WebsocketMessage } from '../types/websocket';
 import { Interface } from './interface';
+import { Branding, BrandingColors } from '../config/config';
 
 @singleton()
 @injectable()
@@ -262,6 +263,16 @@ export class REST extends IStatefulService {
             (req, res, next) => this.handleCors(req, res, next),
         );
 
+        // Public branding endpoint (NO auth) so the login page can be branded
+        // before login. Registered here, before the auth-protected `/api` router
+        // is mounted, so Express matches this GET first. The admin-only write
+        // path (POST /api/branding) still goes through the `/api` router + RBAC.
+        this.express.get(
+            '/api/branding',
+            /* istanbul ignore next */
+            (req, res) => res.json(this.getBranding()),
+        );
+
         this.express.get(
             '/login',
             /* istanbul ignore next */
@@ -295,6 +306,23 @@ export class REST extends IStatefulService {
 
     private handleUiFileRequest(req: express.Request, res: express.Response): void {
         res.sendFile(path.join(this.UI_FILES, 'index.html'));
+    }
+
+    /**
+     * Returns the configured branding merged over defaults, so a partially
+     * populated branding object (or a config saved before this feature existed)
+     * always yields a complete, safe-to-consume object for the WebUI.
+     */
+    private getBranding(): Branding {
+        const configured = this.manager.config?.branding ?? {} as Partial<Branding>;
+        return {
+            ...new Branding(),
+            ...configured,
+            colors: {
+                ...new BrandingColors(),
+                ...(configured.colors ?? {}),
+            },
+        };
     }
 
     private async setupRouter(): Promise<void> {

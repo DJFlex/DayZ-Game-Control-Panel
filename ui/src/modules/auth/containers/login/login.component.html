@@ -4,7 +4,17 @@
             <div class="col-lg-5">
                 <div class="card shadow-lg border-0 rounded-lg mt-5">
                     <div class="card-header">
-                        <h3 class="text-center font-weight-light my-4">Login</h3>
+                        <div *ngIf="(branding.changes | async)?.logoLogin as logo" class="text-center mt-3">
+                            <img [src]="logo" alt="logo" style="max-height: 80px; max-width: 100%;" />
+                        </div>
+                        <h3 class="text-center font-weight-light my-4">
+                            {{ (branding.changes | async)?.loginHeading || 'Login' }}
+                        </h3>
+                        <p *ngIf="(branding.changes | async)?.loginTagline as tagline"
+                           class="text-center text-muted small mt-n2 mb-3"
+                        >
+                            {{ tagline }}
+                        </p>
                     </div>
                     <div class="card-body">
                         <form>

@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as TJS from 'typescript-json-schema';
-import { ServerCfg } from '../src/config/config';
+import { Branding, ServerCfg } from '../src/config/config';
 import { generateConfigTemplate } from '../src/config/config-template';
 
 const pkgJson = require('../package.json');
@@ -33,6 +33,11 @@ try {
 const schema = createConfigSchema();
 
 schema.properties.serverCfg.default = new ServerCfg();
+
+// TJS cannot evaluate the `new Branding()` initializer expression, so the
+// generated schema has no default for branding. Provide it explicitly (same
+// as serverCfg above) so the config template and validator defaults are complete.
+schema.properties.branding.default = new Branding();
 
 fs.writeFileSync(
     path.resolve(path.join(__dirname, '../dist/VERSION')),
