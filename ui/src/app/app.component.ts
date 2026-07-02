@@ -2,6 +2,8 @@ import { Component } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { ChildActivationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { ThemeService } from '../modules/app-common/services/theme.service';
+import { BrandingService } from '../modules/app-common/services/branding.service';
 
 @Component({
     selector: 'app-root',
@@ -12,7 +14,16 @@ export class AppComponent {
 
     public title = 'ServerManager';
 
-    public constructor(public router: Router, private titleService: Title) {
+    public constructor(
+        public router: Router,
+        private titleService: Title,
+        // injected so the theme is initialised/applied app-wide at startup
+        private themeService: ThemeService,
+        private brandingService: BrandingService,
+    ) {
+        // fetch + apply white-label branding as early as possible (public endpoint,
+        // so it also brands the login screen before login)
+        this.brandingService.load();
         this.router.events
             .pipe(filter((event) => event instanceof ChildActivationEnd))
             .subscribe((event) => {

@@ -1,0 +1,119 @@
+<sb-layout-dashboard>
+    <sb-dashboard-head title="Branding" [hideBreadcrumbs]="false"></sb-dashboard-head>
+    <sb-card>
+        <div class="card-header">
+            <fa-icon class="mr-1" [icon]='["fas", "palette"]'></fa-icon>Branding / White-label
+        </div>
+        <div class="card-body" *ngIf="!loading && model">
+            <ngb-alert *ngIf="outcomeBadge"
+                       [type]="outcomeBadge.success ? 'success' : 'danger'"
+            >
+                {{ outcomeBadge.message }}
+            </ngb-alert>
+
+            <p class="text-muted small">
+                Changes preview live. Click <strong>Save</strong> to persist them for every viewer
+                (requires admin rights). Images are stored inside the config as base64 data URIs.
+            </p>
+
+            <form (ngSubmit)="save()" #brandingForm="ngForm">
+
+                <strong>Text</strong>
+                <hr>
+                <div class="row spaced">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="title">Panel Title</label>
+                            <input type="text" class="form-control" id="title" name="title"
+                                   [(ngModel)]="model.title" (ngModelChange)="preview()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="footerText">Footer Text</label>
+                            <input type="text" class="form-control" id="footerText" name="footerText"
+                                   [(ngModel)]="model.footerText" (ngModelChange)="preview()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="loginHeading">Login Heading</label>
+                            <input type="text" class="form-control" id="loginHeading" name="loginHeading"
+                                   [(ngModel)]="model.loginHeading" (ngModelChange)="preview()">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="loginTagline">Login Tagline</label>
+                            <input type="text" class="form-control" id="loginTagline" name="loginTagline"
+                                   [(ngModel)]="model.loginTagline" (ngModelChange)="preview()">
+                        </div>
+                    </div>
+                </div>
+
+                <strong>Colours</strong>
+                <hr>
+                <div class="row spaced">
+                    <div class="col-md-3" *ngFor="let c of colorFields">
+                        <div class="form-group">
+                            <label [attr.for]="'color-' + c.key">{{ c.label }}</label>
+                            <div class="d-flex align-items-center">
+                                <input type="color" class="brand-swatch mr-2"
+                                       [id]="'color-' + c.key" [name]="'color-' + c.key"
+                                       [(ngModel)]="model.colors[c.key]" (ngModelChange)="preview()">
+                                <input type="text" class="form-control"
+                                       [name]="'colorhex-' + c.key"
+                                       [(ngModel)]="model.colors[c.key]" (ngModelChange)="preview()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <strong>Images</strong>
+                <hr>
+                <div class="row spaced">
+                    <div class="col-md-6" *ngFor="let img of imageFields">
+                        <div class="form-group">
+                            <label>{{ img.label }}</label>
+                            <pre class="small text-muted mb-1">{{ img.hint }}</pre>
+                            <div class="brand-image-preview mb-2" *ngIf="model[img.key]">
+                                <img [src]="model[img.key]" [alt]="img.label" />
+                            </div>
+                            <div class="d-flex">
+                                <label class="btn btn-secondary mb-0 mr-2">
+                                    <fa-icon class="mr-1" [icon]='["fas", "upload"]'></fa-icon>Choose…
+                                    <input type="file" accept="image/*" hidden
+                                           (change)="onImageSelected($event, img.key)">
+                                </label>
+                                <button type="button" class="btn btn-outline-secondary"
+                                        *ngIf="model[img.key]"
+                                        (click)="clearImage(img.key)">
+                                    <fa-icon class="mr-1" [icon]='["fas", "trash"]'></fa-icon>Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row" style="justify-content: flex-end;">
+                    <div class="col-md-6">
+                        <div style="display: flex; flex-direction: row; justify-content: flex-end;">
+                            <button type="button" class="btn btn-outline-secondary mr-2" (click)="resetToDefaults()">
+                                Reset to Defaults
+                            </button>
+                            <button type="button" class="btn btn-secondary mr-2" (click)="reset()">
+                                Revert
+                            </button>
+                            <button type="submit" class="btn btn-success">
+                                <fa-icon class="mr-1" [icon]='["fas", "save"]'></fa-icon>Save
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card-body" *ngIf="loading">
+            <fa-icon [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>
+        </div>
+    </sb-card>
+</sb-layout-dashboard>

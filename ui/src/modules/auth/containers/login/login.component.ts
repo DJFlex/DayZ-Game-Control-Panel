@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { BrandingService } from '../../../app-common/services/branding.service';
 
 @Component({
     selector: 'sb-login',
@@ -18,6 +19,7 @@ export class LoginComponent implements OnInit {
     public constructor(
         private auth: AuthService,
         private router: Router,
+        public branding: BrandingService,
     ) {}
 
     public ngOnInit(): void {

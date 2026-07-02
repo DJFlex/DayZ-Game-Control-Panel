@@ -374,6 +374,25 @@ export class Interface extends IService {
                 disableDiscord: true,
                 action: () => this.manager.getServerInfo(),
             })],
+            // NOTE: GET /api/branding is served publicly (no auth) directly in rest.ts
+            // so the login page can be branded before login. Only the admin-only write
+            // path goes through the command map / RBAC here.
+            ['branding', RequestTemplate.build({
+                method: 'post',
+                level: 'admin',
+                disableDiscord: true,
+                params: [{ name: 'branding' }],
+                action: (req, params) => {
+                    try {
+                        this.configFileHelper.writeConfig(
+                            JSON.stringify({ branding: params.branding }),
+                        );
+                        return true;
+                    } catch (e) {
+                        throw new Response(HTTP.HTTP_STATUS_BAD_REQUEST, e);
+                    }
+                },
+            })],
         ]);
     }
 

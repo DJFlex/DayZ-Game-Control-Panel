@@ -60,6 +60,12 @@ const routes: Routes = [
             import('../modules/map/map-routing.module').then((m) => m.MapRoutingModule),
     },
     {
+        path: 'dashboard/branding',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+            import('../modules/branding/branding-routing.module').then((m) => m.BrandingRoutingModule),
+    },
+    {
         path: 'dashboard/files',
         canActivate: [AuthGuard],
         loadChildren: () =>

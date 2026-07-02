@@ -4,6 +4,8 @@ import { Breadcrumb } from '../../models';
 import { NavigationService } from '../../services/navigation.service';
 import { AuthService } from '../../../auth/services/auth.service';
 import { AppCommonService } from '../../../../modules/app-common/services/app-common.service';
+import { ThemeService } from '../../../../modules/app-common/services/theme.service';
+import { BrandingService } from '../../../../modules/app-common/services/branding.service';
 
 @Component({
     selector: 'sb-top-nav',
@@ -22,7 +24,13 @@ export class TopNavComponent implements OnInit, OnDestroy {
         private navigationService: NavigationService,
         private auth: AuthService,
         private appCommon: AppCommonService,
+        public theme: ThemeService,
+        public branding: BrandingService,
     ) {}
+
+    public toggleTheme(): void {
+        this.theme.toggle();
+    }
 
     public ngOnInit(): void {
         this.refreshRate = String(this.appCommon.refreshRate);

@@ -2,7 +2,14 @@
     <button class="btn btn-link btn-sm order-1 order-lg-0" id="sidebarToggle" data-cy="topNavToggleSideNav" (click)="toggleSideNav()">
         <fa-icon [icon]='["fas", "bars"]'></fa-icon>
     </button>
-    <a class="navbar-brand" routerLink="/dashboard">Server Manager</a>
+    <a class="navbar-brand" routerLink="/dashboard">
+        <img *ngIf="(branding.changes | async)?.logoTopbar as logo"
+             [src]="logo"
+             alt="logo"
+             style="max-height: 32px; max-width: 180px;"
+        />
+        <span *ngIf="!(branding.changes | async)?.logoTopbar">{{ (branding.changes | async)?.title || 'Server Manager' }}</span>
+    </a>
 
     <sb-breadcrumbs class="hide-top-nav"></sb-breadcrumbs>
 
@@ -32,6 +39,15 @@
             <fa-icon [icon]='["fas", "sync"]'></fa-icon>
         </button>
     </div>
+
+    <button class="btn btn-link order-1 order-lg-0"
+            id="themeToggle"
+            (click)="toggleTheme()"
+            [title]="theme.isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+            data-cy="topNavToggleTheme"
+    >
+        <fa-icon [icon]='["fas", theme.isDark ? "sun" : "moon"]'></fa-icon>
+    </button>
 
     <button class="btn btn-link order-1 order-lg-0" id="logout" (click)="logout()">
         <fa-icon [icon]='["fas", "sign-out-alt"]'></fa-icon>
