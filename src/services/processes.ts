@@ -283,20 +283,38 @@ export class WindowsProcessFetcher extends IService implements IProcessFetcher {
         super(loggerFactory.createLogger('WinProcesses'));
     }
 
+    /**
+     * Builds the powershell args to query Win32_Process via CIM,
+     * emitting the same KEY=VALUE blocks (one property per line,
+     * records separated by a blank line) which
+     * `wmic process get ... /VALUE` used to produce.
+     * wmic.exe was removed in Windows 11 24H2+, but the output format
+     * is kept identical so the parser below stays unchanged.
+     * CreationDate keeps the WMI datetime shape (yyyyMMddHHmmss...).
+     */
+    private buildProcessQueryArgs(): string[] {
+        const emitters = WindowsProcessFetcher.WMIC_VALUES
+            .map((key) => {
+                if (key === 'CreationDate') {
+                    return `'CreationDate={0}' -f $(if ($p.CreationDate) { $p.CreationDate.ToString('yyyyMMddHHmmss') + '.000000+000' } else { '' })`;
+                }
+                return `'${key}={0}' -f $p.${key}`;
+            })
+            .join('; ');
+        return [
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            `Get-CimInstance Win32_Process | ForEach-Object { $p = $_; ${emitters}; '' }`,
+        ];
+    }
+
     public async getProcessList(exeName?: string): Promise<ProcessEntry[]> {
         const result = await this.spawner.spawnForOutput(
-            'cmd',
-            [
-                '/c',
-                [
-                    'wmic',
-                    'process',
-                    'get',
-                    // ...(exeName ? ['where', `${exeName}`] : []),
-                    `${WindowsProcessFetcher.WMIC_VALUES.join(',')}`,
-                    '/VALUE',
-                ].join(' '),
-            ],
+            'powershell',
+            this.buildProcessQueryArgs(),
             {
                 dontThrow: true,
             },

@@ -6,18 +6,20 @@ export const isRunFromWindowsGUI = (): boolean => {
         return false;
     }
 
+    // wmic.exe was removed in Windows 11 24H2+;
+    // query the parent process via PowerShell CIM
+    // with the same KEY=VALUE output wmic /VALUE produced
     // eslint-disable-next-line prefer-template
     const stdout = (childProcess.spawnSync(
-        'cmd',
+        'powershell',
         [
-            '/c',
-            [
-                'wmic',
-                'process',
-                'get',
-                'Name,ProcessId',
-                '/VALUE',
-            ].join(' '),
+            '-NoProfile',
+            '-NonInteractive',
+            '-ExecutionPolicy',
+            'Bypass',
+            '-Command',
+            `Get-CimInstance Win32_Process -Filter 'ProcessId = ${process.ppid}' `
+                + '| ForEach-Object { \'Name={0}\' -f $_.Name; \'ProcessId={0}\' -f $_.ProcessId; \'\' }',
         ],
     ).stdout + '')
         .replace(/\r/g, '')
