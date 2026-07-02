@@ -49,8 +49,20 @@ export class REST extends IStatefulService {
         return (express as any)();
     }
 
+    /* istanbul ignore next function for easier tests */
+    public createRouter(): express.Router {
+        return express.Router();
+    }
+
     public async start(): Promise<void> {
         this.express = this.createExpress();
+
+        // Use a FRESH router on every (re)start. This service is stopped and
+        // restarted on every config reload; reusing the persistent router would
+        // stack a second basicAuth middleware (with the updated user list) behind
+        // the stale first one, so newly added/removed admins would not take effect
+        // until a full process restart. A fresh router reflects the current admins.
+        this.router = this.createRouter();
 
         this.port = this.manager.getWebPort();
         this.host = this.manager.config.publishWebServer ? '0.0.0.0' : '127.0.0.1';
