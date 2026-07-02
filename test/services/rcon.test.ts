@@ -222,8 +222,9 @@ describe('Test class RCON', () => {
                     createCmdBuffers(
                         buffer.readUInt8(8),
                         `
-                        1 127.0.0.1:1234 51 123abc(verified) player1
+                        1 127.0.0.1:1234 51 123abc(OK) player1
                         2 127.0.0.1:4321 90 abc123(verified) player2
+                        3 127.0.0.1:5678 78 456def(?) player3 (Lobby)
                         `
                     ).forEach((x) => {
                         getSocketListener(socket, 'message')!(createResponse(x));
@@ -233,7 +234,16 @@ describe('Test class RCON', () => {
         });
 
         const res = await rcon.getPlayers();
-        expect(res.length).to.equal(2);
+        expect(res.length).to.equal(3);
+
+        expect(res[0].verified).to.be.true;
+        expect(res[0].name).to.equal('player1');
+
+        // players with unverified BE GUIDs (shown as `guid(?)`) must be included
+        expect(res[2].beguid).to.equal('456def');
+        expect(res[2].verified).to.be.false;
+        expect(res[2].name).to.equal('player3');
+        expect(res[2].lobby).to.be.true;
 
     });
 

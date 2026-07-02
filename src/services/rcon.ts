@@ -502,8 +502,11 @@ export class RCON extends IStatefulService {
             return [];
         }
 
+        // the GUID verification state is '?' until BattlEye confirms the GUID
+        // (which never happens on servers without BE GUID verification),
+        // so it must match \S+ rather than \w+ to not drop those players
         return matchRegex(
-            /(\d+)\s+(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+\b)\s+(\d+)\s+([0-9a-fA-F]+)\(\w+\)\s([\S ]+)$/gim,
+            /(\d+)\s+(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):(\d+\b)\s+(\d+)\s+([0-9a-fA-F]+)\((\S+)\)\s([\S ]+)$/gim,
             data,
         )
             .map((e) => {
@@ -513,8 +516,9 @@ export class RCON extends IStatefulService {
                     port: e[3],
                     ping: e[4],
                     beguid: e[5],
-                    name: e[6]?.replace(' (Lobby)', ''),
-                    lobby: !!e[6]?.includes(' (Lobby)'),
+                    verified: e[6] === 'OK',
+                    name: e[7]?.replace(' (Lobby)', ''),
+                    lobby: !!e[7]?.includes(' (Lobby)'),
                 };
             }) ?? [];
     }
