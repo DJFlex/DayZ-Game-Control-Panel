@@ -49,7 +49,58 @@
                 <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
-                        --- currently only in file ---
+                        <pre class="small text-muted">
+                            {{ schema.properties.admins.description }}
+                        </pre>
+                        <div class="alert alert-warning small" role="alert">
+                            <fa-icon class="mr-1" [icon]='["fas", "exclamation-triangle"]'></fa-icon>
+                            These are the login accounts for this panel and the API. Changing your own
+                            User ID, Password or Level and saving will require you to log in again with
+                            the new details. Use a strong, unique password for each admin.
+                        </div>
+                        <div class="row" style="margin-bottom: 12px;" *ngFor="let admin of config.admins; let idx = index">
+                            <div class="col-md-4">
+                                <label for="admin.userId.{{idx}}">User ID</label>
+                                <input type="text" class="form-control"
+                                       id="admin.userId.{{idx}}" name="admin.userId.{{idx}}"
+                                       [(ngModel)]="admin.userId" [ngModelOptions]="{standalone: true}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="admin.password.{{idx}}">Password</label>
+                                <div style="display: flex; flex-direction: row;">
+                                    <input type="text" class="form-control"
+                                           id="admin.password.{{idx}}" name="admin.password.{{idx}}"
+                                           [(ngModel)]="admin.password" [ngModelOptions]="{standalone: true}">
+                                    <button type="button" class="btn btn-secondary ml-1"
+                                            title="Generate a strong password"
+                                            (click)="generateAdminPassword(admin)">
+                                        <fa-icon [icon]='["fas", "sync"]'></fa-icon>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="admin.userLevel.{{idx}}">Level</label>
+                                <select class="form-control"
+                                        id="admin.userLevel.{{idx}}" name="admin.userLevel.{{idx}}"
+                                        [(ngModel)]="admin.userLevel" [ngModelOptions]="{standalone: true}">
+                                    <option value="admin">admin (full control)</option>
+                                    <option value="manage">manage (restarts, updates)</option>
+                                    <option value="moderate">moderate (kick, ban, messages)</option>
+                                    <option value="view">view (read only)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-1" style="display: flex; align-items: flex-end;">
+                                <button class="btn btn-danger form-control" type="button"
+                                        [disabled]="config.admins.length <= 1"
+                                        title="Remove this admin"
+                                        (click)="removeAdmin(idx)">
+                                    <fa-icon [icon]='["fas", "trash"]'></fa-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn form-control" (click)="addAdmin()">
+                            <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Admin
+                        </button>
                     </div>
                 </div>
 
