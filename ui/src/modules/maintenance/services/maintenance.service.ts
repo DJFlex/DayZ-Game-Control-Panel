@@ -98,4 +98,37 @@ export class MaintenanceService {
         return res ?? null;
     }
 
+    /** List available mpmissions backups (name + mtime). */
+    public async getBackups(): Promise<{ file: string; mtime: number }[]> {
+        const res = await this.httpClient.get<{ file: string; mtime: number }[]>(
+            '/api/getbackups',
+            {
+                headers: this.auth.getAuthHeaders(),
+                withCredentials: true,
+            },
+        ).pipe(
+            catchError((e) => { console.log(e); return of([]); }),
+        ).toPromise();
+        return res ?? [];
+    }
+
+    /**
+     * Restore mpmissions from a named backup. Resolves null on transport error.
+     * `ok:false` with reason 'server-running' means the server must be stopped
+     * first; 'not-found' means the backup name was rejected server-side.
+     */
+    public async restoreBackup(name: string): Promise<{ ok: boolean; reason?: string; safetyBackup?: string } | null> {
+        const res = await this.httpClient.post<{ ok: boolean; reason?: string; safetyBackup?: string }>(
+            '/api/restorebackup',
+            { name },
+            {
+                headers: this.auth.getAuthHeaders(),
+                withCredentials: true,
+            },
+        ).pipe(
+            catchError((e) => { console.log(e); return of(null); }),
+        ).toPromise();
+        return res ?? null;
+    }
+
 }

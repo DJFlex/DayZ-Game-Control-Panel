@@ -6,6 +6,7 @@ import { LoggerFactory } from '../services/loggerfactory';
 import { Metrics } from '../services/metrics';
 import { MissionFiles } from '../services/mission-files';
 import { Monitor } from '../services/monitor';
+import { ServerState } from '../types/monitor';
 import { SystemReporter } from '../services/system-reporter';
 import { RCON } from '../services/rcon';
 import { SteamCMD } from '../services/steamcmd';
@@ -314,6 +315,21 @@ export class Interface extends IService {
                 method: 'get',
                 level: 'manage',
                 action: () => this.backup.getBackups(),
+            })],
+            ['restorebackup', RequestTemplate.build({
+                method: 'post',
+                level: 'manage',
+                params: [{ name: 'name' }],
+                // Restore overwrites the live mpmissions, so the server must be
+                // stopped first (else copyDirFromTo can't clear files the server
+                // holds open). We gate on that here rather than corrupting a
+                // running mission; the service also takes a safety snapshot.
+                action: async (req, params) => {
+                    if (this.monitor.serverState !== ServerState.STOPPED) {
+                        return { ok: false, reason: 'server-running' };
+                    }
+                    return this.backup.restoreBackup(params.name);
+                },
             })],
             ['writemissionfile', RequestTemplate.build({
                 method: 'post',

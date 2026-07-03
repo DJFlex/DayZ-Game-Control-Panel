@@ -69,12 +69,52 @@ export class Backups extends IService {
 
     public async cleanup(): Promise<void> {
         const now = new Date().valueOf();
+        const backupDir = this.getBackupDir();
         const backups = await this.getBackups();
         for (const backup of backups) {
             if ((now - backup.mtime) > (this.manager.config.backupMaxAge * 24 * 60 * 60 * 1000)) {
-                await this.paths.removeLink(backup.file);
+                // getBackups() returns bare folder names; removeLink needs the
+                // full path or rmdir runs against the wrong (cwd-relative) dir
+                // and silently no-ops, so old backups never get pruned.
+                this.paths.removeLink(path.join(backupDir, backup.file));
             }
         }
+    }
+
+    /**
+     * Restore the mpmissions folder from a named backup.
+     *
+     * The name is validated against the known backups (which also blocks path
+     * traversal). A fresh backup of the CURRENT mpmissions is taken first so the
+     * restore is itself reversible. The caller is responsible for ensuring the
+     * server is stopped — copyDirFromTo removes the target first, which would
+     * fail/partially-delete against files a running server holds open.
+     */
+    public async restoreBackup(name: string): Promise<{ ok: boolean; reason?: string; safetyBackup?: string }> {
+        const backups = await this.getBackups();
+        if (!backups.some((b) => b.file === name)) {
+            this.log.log(LogLevel.WARN, `Refusing to restore unknown backup '${name}'`);
+            return { ok: false, reason: 'not-found' };
+        }
+
+        const mpmissions = path.join(this.manager.getServerPath(), 'mpmissions');
+        if (!this.fs.existsSync(mpmissions)) {
+            return { ok: false, reason: 'no-mpmissions' };
+        }
+
+        // Safety snapshot of the current state before we overwrite it.
+        const safetyBackup = `mpmissions_pre-restore_${this.marker()}`;
+        this.log.log(LogLevel.IMPORTANT, `Backing up current mpmissions as ${safetyBackup} before restore`);
+        await this.paths.copyDirFromTo(mpmissions, path.join(this.getBackupDir(), safetyBackup));
+
+        this.log.log(LogLevel.IMPORTANT, `Restoring mpmissions from backup ${name}`);
+        const ok = await this.paths.copyDirFromTo(path.join(this.getBackupDir(), name), mpmissions);
+        return { ok, safetyBackup };
+    }
+
+    private marker(): string {
+        const now = new Date();
+        return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}-${now.getHours()}-${now.getMinutes()}`;
     }
 
 }

@@ -59,6 +59,29 @@
                     </button>
                 </div>
             </div>
+
+            <strong>Restore Backup</strong>
+            <hr>
+            <p class="text-muted restore-hint">
+                Restore the mpmissions folder from a backup.
+                <strong>Stop the server first</strong> (Lock Server Restart, then Shutdown).
+                A safety backup of the current mission is taken automatically before restoring.
+            </p>
+            <div class="row spaced">
+                <div class="col-md-6">
+                    <select class="form-control" #restoreSelect [disabled]="restoreBusy || !backups.length">
+                        <option *ngIf="!backups.length" value="">No backups available</option>
+                        <option *ngFor="let b of backups" [value]="b.file">{{ b.file }} &mdash; {{ b.mtime | date:'dd/MM/yyyy HH:mm' }}</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-warning" [disabled]="restoreBusy || !backups.length"
+                            (click)="restoreBackup(restoreSelect.value)">
+                        {{ restoreBusy ? 'Restoring...' : 'Restore Selected' }}
+                    </button>
+                </div>
+            </div>
+
             <strong>Restarts</strong>
             <hr>
             <div class="row spaced">

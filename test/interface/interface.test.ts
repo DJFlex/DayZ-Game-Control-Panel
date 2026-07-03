@@ -7,6 +7,7 @@ import { DependencyContainer, Lifecycle, container } from 'tsyringe';
 import { Manager } from '../../src/control/manager';
 import { RCON } from '../../src/services/rcon';
 import { Monitor } from '../../src/services/monitor';
+import { ServerState } from '../../src/types/monitor';
 import { Metrics } from '../../src/services/metrics';
 import { SteamCMD } from '../../src/services/steamcmd';
 import { LogReader } from '../../src/services/log-reader';
@@ -646,6 +647,42 @@ describe('Test Interface', () => {
 
         expect(response.status).to.equal(200);
         expect(backups.getBackups.called).to.be.true;
+    });
+
+    it('execute-restorebackup', async () => {
+        (monitor as any).serverState = ServerState.STOPPED;
+        backups.restoreBackup.resolves({ ok: true, safetyBackup: 'mpmissions_pre-restore_x' });
+        const handler = injector.resolve(Interface);
+        const request = {
+            resource: 'restorebackup',
+            user: 'admin',
+            body: {
+                name: 'mpmissions_backup_a'
+            }
+        } as any as Request;
+        const response = await handler.execute(request);
+
+        expect(response.status).to.equal(200);
+        expect(backups.restoreBackup.calledWith('mpmissions_backup_a')).to.be.true;
+        expect((response.body as any).ok).to.be.true;
+    });
+
+    it('execute-restorebackup-server-running', async () => {
+        (monitor as any).serverState = ServerState.STARTED;
+        const handler = injector.resolve(Interface);
+        const request = {
+            resource: 'restorebackup',
+            user: 'admin',
+            body: {
+                name: 'mpmissions_backup_a'
+            }
+        } as any as Request;
+        const response = await handler.execute(request);
+
+        // Must refuse (and NOT touch the backups service) while the server runs.
+        expect(response.status).to.equal(200);
+        expect(response.body).to.deep.equal({ ok: false, reason: 'server-running' });
+        expect(backups.restoreBackup.called).to.be.false;
     });
 
     it('execute-writemissionfile', async () => {

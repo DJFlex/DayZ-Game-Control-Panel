@@ -22,12 +22,22 @@ export class MaintenanceComponent implements OnInit {
 
     public consoleBusy = false;
 
+    // Available mpmissions backups (newest first) for the restore dropdown.
+    public backups: { file: string; mtime: number }[] = [];
+
+    public restoreBusy = false;
+
     public constructor(
         private maintenance: MaintenanceService,
     ) {}
 
     public ngOnInit(): void {
-        // ignore
+        void this.loadBackups();
+    }
+
+    public async loadBackups(): Promise<void> {
+        const list = await this.maintenance.getBackups();
+        this.backups = (list || []).sort((a, b) => b.mtime - a.mtime);
     }
 
     private exactBooleanParse(val?: string): boolean | undefined {
@@ -78,6 +88,7 @@ export class MaintenanceComponent implements OnInit {
                 message: 'Successfully created backup',
                 success: true,
             };
+            void this.loadBackups();
         } else {
             this.outcomeBadge = {
                 message: 'Failed to create backup',
@@ -238,6 +249,47 @@ export class MaintenanceComponent implements OnInit {
             }
         } finally {
             this.consoleBusy = false;
+        }
+    }
+
+    public async restoreBackup(name: string): Promise<void> {
+        if (!name || this.restoreBusy) {
+            return;
+        }
+        // eslint-disable-next-line no-alert, no-undef
+        const confirmed = confirm(
+            `Restore the server mission from "${name}"?\n\n`
+            + 'This OVERWRITES the current mpmissions folder. A safety backup of '
+            + 'the current mission is taken first. The server must be STOPPED.',
+        );
+        if (!confirmed) {
+            return;
+        }
+
+        this.restoreBusy = true;
+        try {
+            const res = await this.maintenance.restoreBackup(name);
+            if (!res) {
+                this.outcomeBadge = { message: 'Restore failed (not permitted or manager unreachable)', success: false };
+            } else if (res.reason === 'server-running') {
+                this.outcomeBadge = {
+                    message: 'Stop the server before restoring (Lock Server Restart, then Shutdown), then try again.',
+                    success: false,
+                };
+            } else if (res.reason === 'not-found') {
+                this.outcomeBadge = { message: 'That backup no longer exists - refreshing the list.', success: false };
+                void this.loadBackups();
+            } else if (res.ok) {
+                this.outcomeBadge = {
+                    message: `Restored from ${name}. Current mission saved as ${res.safetyBackup}. Start the server to load it.`,
+                    success: true,
+                };
+                void this.loadBackups();
+            } else {
+                this.outcomeBadge = { message: 'Restore failed - check the server logs.', success: false };
+            }
+        } finally {
+            this.restoreBusy = false;
         }
     }
 
