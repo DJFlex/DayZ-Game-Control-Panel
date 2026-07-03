@@ -315,6 +315,41 @@ describe('Test Interface', () => {
         expect(rcon.kickAll.called).to.be.true;
     });
 
+    it('execute-rconcommand', async () => {
+        rcon.command.resolves('Players on server: 0');
+        const handler = injector.resolve(Interface);
+        const request = {
+            resource: 'rconcommand',
+            user: 'admin',
+            body: {
+                command: 'players'
+            }
+        } as any as Request;
+        const response = await handler.execute(request);
+
+        expect(response.status).to.equal(200);
+        expect(rcon.command.calledWith('players')).to.be.true;
+        expect(response.body).to.deep.equal({ result: 'Players on server: 0', connected: true });
+    });
+
+    it('execute-rconcommand-not-connected', async () => {
+        rcon.command.resolves(null);
+        const handler = injector.resolve(Interface);
+        const request = {
+            resource: 'rconcommand',
+            user: 'admin',
+            body: {
+                command: '#lock'
+            }
+        } as any as Request;
+        const response = await handler.execute(request);
+
+        // An empty/absent RCON response must still be a 200 with connected:false,
+        // not a 404 (execute() would 404 a bare falsy result).
+        expect(response.status).to.equal(200);
+        expect(response.body).to.deep.equal({ result: '', connected: false });
+    });
+
     it('execute-kick', async () => {
         const handler = injector.resolve(Interface);
         const request = {
