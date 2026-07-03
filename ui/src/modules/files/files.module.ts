@@ -11,6 +11,7 @@ import { AgGridModule } from 'ag-grid-angular';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { PlayersModule } from '../players/players.module';
 import { TypesComponent } from './containers/types/types.component';
+import { FileEditorComponent } from './containers/file-editor/file-editor.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { CategoryRenderer, CheckboxRenderer, GenericListRenderer, UsageRenderer, ValueRenderer, RarityRenderer } from './containers/types/renderers';
@@ -41,6 +42,7 @@ import { ListTooltipComponent } from './containers/types/columns';
         RarityRenderer,
         GenericListRenderer,
         TypesComponent,
+        FileEditorComponent,
         ListTooltipComponent,
     ],
     exports: [

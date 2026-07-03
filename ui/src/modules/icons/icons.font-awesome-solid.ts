@@ -47,6 +47,9 @@ import {
     faPalette,
     faUpload,
     faSave,
+    faFolder,
+    faFileAlt,
+    faEdit,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const fontAwesomeSolidIcons = {
@@ -96,4 +99,7 @@ export const fontAwesomeSolidIcons = {
     faPalette,
     faUpload,
     faSave,
+    faFolder,
+    faFileAlt,
+    faEdit,
 };

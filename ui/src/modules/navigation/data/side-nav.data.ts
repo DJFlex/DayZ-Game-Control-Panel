@@ -23,6 +23,7 @@ export const sideNavSections: SideNavSection[] = [
         text: 'Files',
         items: [
             'types',
+            'fileeditor',
         ],
     },
 ];
@@ -82,5 +83,10 @@ export const sideNavItems: SideNavItems = {
         icon: 'wrench',
         text: 'Types',
         link: '/dashboard/files/types',
+    },
+    fileeditor: {
+        icon: 'edit',
+        text: 'File Editor',
+        link: '/dashboard/files/editor',
     },
 };

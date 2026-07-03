@@ -1,0 +1,78 @@
+<sb-layout-dashboard>
+    <sb-dashboard-head title="File Editor" [hideBreadcrumbs]="false"></sb-dashboard-head>
+    <sb-card>
+        <div class="card-header">
+            <fa-icon class="mr-1" [icon]='["fas", "folder"]'></fa-icon>Mission Files
+        </div>
+        <div class="card-body">
+
+            <ngb-alert *ngIf="outcome" [type]="outcome.success ? 'success' : 'danger'" (closed)="outcome = undefined">
+                {{ outcome.message }}
+            </ngb-alert>
+
+            <p class="text-muted fe-hint">
+                Browse and edit files under the active mission (types.xml, events.xml, globals.xml,
+                cfggameplay.json, ...). Changes are written straight to the live mission; tick
+                <em>Backup first</em> to snapshot mpmissions before saving.
+            </p>
+
+            <!-- current path -->
+            <div class="fe-path mb-2">
+                <a href="javascript:void(0)" (click)="loadDir('')">mission</a>
+                <ng-container *ngFor="let seg of breadcrumbs; let i = index">
+                    <span class="fe-sep">/</span>
+                    <a href="javascript:void(0)" (click)="goTo(i)">{{ seg }}</a>
+                </ng-container>
+            </div>
+
+            <div class="row">
+                <!-- file browser -->
+                <div class="col-md-4">
+                    <div class="fe-browser">
+                        <div class="fe-entry fe-up" *ngIf="cwd" (click)="up()">
+                            <fa-icon class="mr-1" [icon]='["fas", "arrow-left"]'></fa-icon>..
+                        </div>
+                        <div class="fe-entry" *ngFor="let e of entries"
+                             (click)="openEntry(e)"
+                             [class.fe-dir]="isDir(e)"
+                             [class.active]="openFile === join(cwd, e)">
+                            <fa-icon class="mr-1" [icon]='isDir(e) ? ["fas","folder"] : ["fas","file-alt"]'></fa-icon>{{ e }}
+                        </div>
+                        <div class="fe-msg" *ngIf="loadingDir">Loading...</div>
+                        <div class="fe-msg" *ngIf="!loadingDir && !entries.length">(empty folder)</div>
+                    </div>
+                </div>
+
+                <!-- editor -->
+                <div class="col-md-8">
+                    <div *ngIf="!openFile" class="fe-empty-editor text-muted">
+                        Select a file on the left to edit it.
+                    </div>
+
+                    <div *ngIf="openFile">
+                        <div class="fe-toolbar mb-2">
+                            <fa-icon class="mr-1" [icon]='["fas", "file-alt"]'></fa-icon>
+                            <strong>{{ openFile }}</strong>
+                            <span class="badge badge-warning ml-2" *ngIf="dirty">unsaved</span>
+                        </div>
+
+                        <textarea class="form-control fe-textarea" spellcheck="false"
+                                  [(ngModel)]="content"
+                                  (ngModelChange)="onContentChange()"
+                                  [disabled]="loadingFile || saving"></textarea>
+
+                        <div class="fe-actions mt-2">
+                            <button class="btn btn-primary" [disabled]="saving || !dirty" (click)="save()">
+                                <fa-icon class="mr-1" [icon]='["fas", "save"]'></fa-icon>{{ saving ? 'Saving...' : 'Save' }}
+                            </button>
+                            <button class="btn btn-secondary ml-2" (click)="close()">Close</button>
+                            <label class="fe-backup ml-3">
+                                <input type="checkbox" [(ngModel)]="backupOnSave"> Backup first
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </sb-card>
+</sb-layout-dashboard>

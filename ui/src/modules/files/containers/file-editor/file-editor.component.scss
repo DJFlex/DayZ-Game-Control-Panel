@@ -1,0 +1,87 @@
+@import 'styles/variables.scss';
+
+.fe-hint {
+    font-size: 0.85rem;
+}
+
+.fe-path {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.9rem;
+
+    .fe-sep {
+        margin: 0 0.25rem;
+        opacity: 0.5;
+    }
+}
+
+.fe-browser {
+    border: 1px solid rgba(127, 127, 127, 0.3);
+    border-radius: 4px;
+    max-height: 480px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+.fe-entry {
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &:hover {
+        background: rgba(127, 127, 127, 0.15);
+    }
+
+    &.fe-dir {
+        font-weight: 600;
+    }
+
+    &.active {
+        background: rgba(0, 123, 255, 0.25);
+    }
+}
+
+.fe-up {
+    opacity: 0.8;
+}
+
+.fe-msg {
+    padding: 0.4rem 0.6rem;
+    opacity: 0.6;
+    font-style: italic;
+}
+
+.fe-empty-editor {
+    padding: 2rem 0;
+    text-align: center;
+}
+
+.fe-toolbar {
+    font-family: 'Consolas', 'Courier New', monospace;
+    word-break: break-all;
+}
+
+.fe-textarea {
+    width: 100%;
+    min-height: 480px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    white-space: pre;
+    tab-size: 4;
+}
+
+.fe-actions {
+    display: flex;
+    align-items: center;
+}
+
+.fe-backup {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+
+    input {
+        margin-right: 0.35rem;
+    }
+}

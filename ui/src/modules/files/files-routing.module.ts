@@ -8,6 +8,7 @@ import { FilesModule } from './files.module';
 /* Containers */
 import { SBRouteData } from '../navigation/models';
 import { TypesComponent } from './containers/types/types.component';
+import { FileEditorComponent } from './containers/file-editor/file-editor.component';
 
 /* Routes */
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -34,6 +35,28 @@ export const ROUTES: Routes = [
                 },
                 {
                     text: 'Types',
+                    active: true,
+                },
+            ],
+        } as SBRouteData,
+    },
+    {
+        path: 'editor',
+        canActivate: [],
+        component: FileEditorComponent,
+        data: {
+            title: 'File Editor',
+            breadcrumbs: [
+                {
+                    text: 'Dashboard',
+                    link: '/dashboard',
+                },
+                {
+                    text: 'Files',
+                    link: '/files',
+                },
+                {
+                    text: 'File Editor',
                     active: true,
                 },
             ],
