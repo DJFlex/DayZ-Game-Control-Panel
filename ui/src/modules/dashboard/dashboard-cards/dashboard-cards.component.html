@@ -24,7 +24,7 @@
             background="flex-grow bg-primary"
         >
             <div class="card-body">
-                Sytem CPU:
+                System CPU:
                 <div class="row">
                     <ngx-gauge  type="arch"
                                 [value]="((systemStream | async)?.value?.system?.cpuTotal) | defaultValue:0"
@@ -44,7 +44,7 @@
             background="flex-grow bg-primary"
         >
             <div class="card-body">
-                Sytem RAM: ~{{ (systemStream | async)?.value?.system?.mem | defaultValue:'Unknown' }} MB / {{ (systemStream | async)?.value?.system?.memTotal | defaultValue:'Unknown' }} MB
+                System RAM: ~{{ (systemStream | async)?.value?.system?.mem | defaultValue:'Unknown' }} MB / {{ (systemStream | async)?.value?.system?.memTotal | defaultValue:'Unknown' }} MB
                 <div class="row">
                     <ngx-gauge  type="arch"
                                 [value]="(memStream | async) | defaultValue:0"
