@@ -21,7 +21,9 @@ export class MissionFilesService {
         const res = await this.http.get<string[]>(
             '/api/readmissiondir',
             {
-                params: { dir: dir || '' },
+                // The manager's param validator rejects an empty string as a
+                // missing param, so the mission root is requested as '.'.
+                params: { dir: dir || '.' },
                 headers: this.auth.getAuthHeaders(),
                 withCredentials: true,
             },
