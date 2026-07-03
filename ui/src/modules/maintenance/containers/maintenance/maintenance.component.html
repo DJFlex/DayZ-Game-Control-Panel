@@ -117,6 +117,36 @@
                     </button>
                 </div>
             </div>
+
+            <strong>RCON Console</strong>
+            <hr>
+            <p class="text-muted rcon-hint">
+                Send a raw BattlEye/RCON command (e.g. <code>players</code>, <code>bans</code>,
+                <code>#lock</code>, <code>kick 0 reason</code>). Output appears below, newest first.
+            </p>
+            <div class="row">
+                <div class="col-md-9">
+                    <input class="form-control" #rconInput placeholder="Type an RCON command and press Enter"
+                           [disabled]="consoleBusy"
+                           (keyup.enter)="runRconCommand(rconInput.value); rconInput.value = '';">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-primary" [disabled]="consoleBusy"
+                            (click)="runRconCommand(rconInput.value); rconInput.value = '';">
+                        {{ consoleBusy ? 'Running...' : 'Run Command' }}
+                    </button>
+                </div>
+            </div>
+            <div class="row spaced" *ngIf="consoleHistory.length">
+                <div class="col-12">
+                    <div class="rcon-console-output">
+                        <div class="rcon-entry" *ngFor="let entry of consoleHistory">
+                            <div class="rcon-cmd" [class.error]="!entry.success">&gt; {{ entry.command }}</div>
+                            <pre class="rcon-out">{{ entry.output }}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </sb-card>
 </sb-layout-dashboard>

@@ -4,3 +4,60 @@
 .row.spaced {
     margin-bottom: 2.5rem;
 }
+
+.rcon-hint {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+
+    code {
+        background: rgba(127, 127, 127, 0.18);
+        padding: 0.05rem 0.3rem;
+        border-radius: 3px;
+    }
+}
+
+// Terminal-style output: intentionally dark in both light and dark themes,
+// so it reads as a console regardless of the app theme.
+.rcon-console-output {
+    max-height: 320px;
+    overflow-y: auto;
+    width: 100%;
+    margin-top: 1rem;
+    padding: 0.6rem 0.75rem;
+    background: #16191d;
+    color: #d4d7da;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 4px;
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.rcon-entry {
+    margin-bottom: 0.6rem;
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.rcon-cmd {
+    color: #7fd1ff;
+    font-weight: 600;
+
+    &.error {
+        color: #ff6b6b;
+    }
+}
+
+.rcon-out {
+    margin: 0.15rem 0 0;
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    white-space: pre-wrap;
+    word-break: break-word;
+}

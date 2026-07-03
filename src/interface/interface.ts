@@ -96,6 +96,19 @@ export class Interface extends IService {
                 noResponse: true,
                 action: (req, params) => this.rcon.global(params.message),
             })],
+            ['rconcommand', RequestTemplate.build({
+                method: 'post',
+                level: 'manage',
+                params: [{ name: 'command' }],
+                // Return an object (always truthy) so an RCON command whose
+                // response is an empty string (e.g. #lock, say, kick) is not
+                // mistaken for "no results" (a 404) by the execute() layer.
+                // `connected` is false when RCON is down (command() -> null).
+                action: async (req, params) => {
+                    const result = await this.rcon.command(params.command);
+                    return { result: result ?? '', connected: result !== null };
+                },
+            })],
             ['kickall', RequestTemplate.build({
                 method: 'post',
                 level: 'moderate',

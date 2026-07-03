@@ -78,4 +78,24 @@ export class MaintenanceService {
         return this.execute('global', { message });
     }
 
+    /**
+     * Send a raw RCON/BattlEye command and return its response text.
+     * Unlike execute(), this keeps the response body (the command output).
+     * Resolves null on a transport/permission error; `connected` is false
+     * when the manager's RCON link to the server is down.
+     */
+    public async rconCommand(command: string): Promise<{ result: string; connected: boolean } | null> {
+        const res = await this.httpClient.post<{ result: string; connected: boolean }>(
+            '/api/rconcommand',
+            { command },
+            {
+                headers: this.auth.getAuthHeaders(),
+                withCredentials: true,
+            },
+        ).pipe(
+            catchError((e) => { console.log(e); return of(null); }),
+        ).toPromise();
+        return res ?? null;
+    }
+
 }

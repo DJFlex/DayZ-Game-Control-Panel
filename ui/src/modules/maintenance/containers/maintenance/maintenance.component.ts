@@ -13,6 +13,15 @@ export class MaintenanceComponent implements OnInit {
         success: boolean;
     };
 
+    // RCON console: newest entry first.
+    public consoleHistory: {
+        command: string;
+        output: string;
+        success: boolean;
+    }[] = [];
+
+    public consoleBusy = false;
+
     public constructor(
         private maintenance: MaintenanceService,
     ) {}
@@ -197,6 +206,38 @@ export class MaintenanceComponent implements OnInit {
                 message: 'Failed to send global message',
                 success: false,
             };
+        }
+    }
+
+    public async runRconCommand(command: string): Promise<void> {
+        const cmd = command?.trim();
+        if (!cmd || this.consoleBusy) {
+            return;
+        }
+        this.consoleBusy = true;
+        try {
+            const res = await this.maintenance.rconCommand(cmd);
+            if (res === null) {
+                this.consoleHistory.unshift({
+                    command: cmd,
+                    output: 'Request failed (not permitted, or manager unreachable). See browser console.',
+                    success: false,
+                });
+            } else if (!res.connected) {
+                this.consoleHistory.unshift({
+                    command: cmd,
+                    output: 'RCON is not connected - command was not sent to the server.',
+                    success: false,
+                });
+            } else {
+                this.consoleHistory.unshift({
+                    command: cmd,
+                    output: res.result?.length ? res.result : '(command executed - no output returned)',
+                    success: true,
+                });
+            }
+        } finally {
+            this.consoleBusy = false;
         }
     }
 
