@@ -33,6 +33,32 @@ export class DashboardCardsComponent implements OnInit {
         }
     }
 
+    public serverOnline(s?: ServerState): boolean {
+        return s === ServerState.STARTED;
+    }
+
+    public serverStateLabel(s?: ServerState): string {
+        switch (s) {
+            case ServerState.STARTED: return 'Online';
+            case ServerState.STARTING: return 'Starting';
+            case ServerState.STOPPING: return 'Stopping';
+            default: return 'Stopped';
+        }
+    }
+
+    public cpuLabel(pct?: number | null): string {
+        if (pct === undefined || pct === null) { return '—'; }
+        if (pct < 40) { return 'Low'; }
+        if (pct < 75) { return 'Medium'; }
+        return 'High';
+    }
+
+    /** Conic-gradient background for a ring gauge at the given percent. */
+    public ring(pct?: number | null): string {
+        const p = Math.max(0, Math.min(100, Math.round(pct || 0)));
+        return `conic-gradient(#57a6ff 0 ${p}%, #2d333d ${p}% 100%)`;
+    }
+
     public get playerStream(): Observable<MetricWrapper<RconPlayer[]> | null> {
         return this.getFetcher(MetricTypeEnum.PLAYERS).latestData;
     }

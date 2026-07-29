@@ -1,69 +1,73 @@
-<div class="row">
-    <div class="col">
-        <div class="card mb-4">
-            <div class="card-body">Last Update Received: {{ (systemStream | async)?.timestamp ? ((systemStream | async)?.timestamp | date:'dd/MM/yyyy hh:mm:ss') : 'Unknown' }}</div>
+<ng-container *ngIf="{ sysw: (systemStream | async), mem: (memStream | async), pl: (playerStream | async) } as d">
+
+    <div class="d-head">
+        <div class="d-server">RoZebud Server</div>
+        <div class="d-update">
+            Last update
+            <span class="d-mono">{{ d.sysw?.timestamp ? (d.sysw?.timestamp | date:'HH:mm:ss') : '—' }}</span>
         </div>
     </div>
-</div>
-<div class="row">
 
-    <div class="col-xl-3 col-md-6">
-        <sb-card-view-details
-            class="d-flex h-100"
-            link="/dashboard/system"
-            [background]="'flex-grow ' + serverStateToStyle((systemStream | async)?.value?.serverState)"
-        >
-            <div class="card-body">Server State:<br/> {{ (systemStream | async)?.value?.serverState | defaultValue:'Unknown' }}</div>
-        </sb-card-view-details>
-    </div>
+    <div class="d-tiles">
 
-    <div class="col-xl-3 col-md-6">
-        <sb-card-view-details
-            class="d-flex h-100"
-            link="/dashboard/system"
-            background="flex-grow bg-primary"
-        >
-            <div class="card-body">
-                System CPU:
-                <div class="row">
-                    <ngx-gauge  type="arch"
-                                [value]="((systemStream | async)?.value?.system?.cpuTotal) | defaultValue:0"
-                                append="%"
-                                [size]="165"
-                                style="margin-left: auto; margin-right: auto;"
-                    ></ngx-gauge>
+        <!-- Server state -->
+        <div class="d-tile">
+            <div class="d-tile-top">
+                <div class="d-chip" [class.ok]="serverOnline(d.sysw?.value?.serverState)" [class.bad]="!serverOnline(d.sysw?.value?.serverState)">
+                    <fa-icon [icon]="serverOnline(d.sysw?.value?.serverState) ? ['fas','check'] : ['fas','power-off']"></fa-icon>
+                </div>
+                <div class="d-tile-txt">
+                    <div class="d-tile-label">SERVER STATE</div>
+                    <div class="d-tile-val" [class.ok]="serverOnline(d.sysw?.value?.serverState)" [class.bad]="!serverOnline(d.sysw?.value?.serverState)">
+                        {{ serverStateLabel(d.sysw?.value?.serverState) }}
+                    </div>
                 </div>
             </div>
-        </sb-card-view-details>
-    </div>
+            <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
+        </div>
 
-    <div class="col-xl-3 col-md-6">
-        <sb-card-view-details
-            class="d-flex h-100"
-            link="/dashboard/system"
-            background="flex-grow bg-primary"
-        >
-            <div class="card-body">
-                System RAM: ~{{ (systemStream | async)?.value?.system?.mem | defaultValue:'Unknown' }} MB / {{ (systemStream | async)?.value?.system?.memTotal | defaultValue:'Unknown' }} MB
-                <div class="row">
-                    <ngx-gauge  type="arch"
-                                [value]="(memStream | async) | defaultValue:0"
-                                append="%"
-                                [size]="165"
-                                style="margin-left: auto; margin-right: auto;"
-                    ></ngx-gauge>
+        <!-- CPU -->
+        <div class="d-tile">
+            <div class="d-tile-top">
+                <div class="d-ring" [style.background]="ring(d.sysw?.value?.system?.cpuTotal)">
+                    <div class="d-ring-in">{{ (d.sysw?.value?.system?.cpuTotal | number:'1.0-0') || 0 }}%</div>
+                </div>
+                <div class="d-tile-txt">
+                    <div class="d-tile-label">SYSTEM CPU</div>
+                    <div class="d-tile-val">{{ cpuLabel(d.sysw?.value?.system?.cpuTotal) }}</div>
                 </div>
             </div>
-        </sb-card-view-details>
-    </div>
+            <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
+        </div>
 
-    <div class="col-xl-3 col-md-6">
-        <sb-card-view-details
-            class="d-flex h-100"
-            link="/dashboard/players"
-            background="flex-grow bg-primary"
-        >
-            <div class="card-body">Online Players:<br/> {{ (playerStream | async)?.value?.length | defaultValue:'Unknown' }}</div>
-        </sb-card-view-details>
+        <!-- RAM -->
+        <div class="d-tile">
+            <div class="d-tile-top">
+                <div class="d-ring" [style.background]="ring(d.mem)">
+                    <div class="d-ring-in">{{ (d.mem | number:'1.0-0') || 0 }}%</div>
+                </div>
+                <div class="d-tile-txt">
+                    <div class="d-tile-label">SYSTEM RAM</div>
+                    <div class="d-tile-val" *ngIf="d.sysw?.value?.system as sys">
+                        {{ ((sys.mem ?? 0) / 1024) | number:'1.1-1' }} <span class="d-tile-unit">/ {{ ((sys.memTotal ?? 0) / 1024) | number:'1.1-1' }} GB</span>
+                    </div>
+                    <div class="d-tile-val" *ngIf="!d.sysw?.value?.system">—</div>
+                </div>
+            </div>
+            <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
+        </div>
+
+        <!-- Players -->
+        <div class="d-tile">
+            <div class="d-tile-top">
+                <div class="d-chip"><fa-icon [icon]="['fas','user']"></fa-icon></div>
+                <div class="d-tile-txt">
+                    <div class="d-tile-label">ONLINE PLAYERS</div>
+                    <div class="d-tile-val">{{ d.pl?.value?.length ?? '—' }}</div>
+                </div>
+            </div>
+            <a class="d-foot" routerLink="/dashboard/players">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
+        </div>
+
     </div>
-</div>
+</ng-container>
