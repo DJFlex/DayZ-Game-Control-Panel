@@ -26,6 +26,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     public serverLocked = false;
     public restartLocked = false;
 
+    // True while the server is intentionally stopped for maintenance.
+    public inMaintenance = false;
+    public maintenanceBusy = false;
+
     private destroy$ = new Subject<void>();
 
     // RCON console: newest entry first.
@@ -108,6 +112,51 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             message: ok ? (this.restartLocked ? 'Restarts locked' : 'Restarts unlocked') : 'Failed to change restart lock',
             success: ok,
         };
+    }
+
+    /** One click: lock restarts, then shut the server down, so it stays off. */
+    public async stopForMaintenance(): Promise<void> {
+        if (this.maintenanceBusy) {
+            return;
+        }
+        // eslint-disable-next-line no-alert, no-undef
+        if (!confirm('Stop the server for maintenance?\n\nPlayers are disconnected and the server stays OFF until you click Resume.')) {
+            return;
+        }
+        this.maintenanceBusy = true;
+        try {
+            const locked = await this.maintenance.lockRestarts();
+            if (locked) { this.restartLocked = true; }
+            const stopped = await this.maintenance.shutdown();
+            if (locked && stopped) {
+                this.inMaintenance = true;
+                this.outcomeBadge = { message: 'Server stopped for maintenance. It will stay off until you click Resume.', success: true };
+            } else {
+                this.outcomeBadge = { message: 'Could not fully stop - check Restart lock / Shutdown manually.', success: false };
+            }
+        } finally {
+            this.maintenanceBusy = false;
+        }
+    }
+
+    /** Unlock restarts so the manager brings the server back up. */
+    public async resumeFromMaintenance(): Promise<void> {
+        if (this.maintenanceBusy) {
+            return;
+        }
+        this.maintenanceBusy = true;
+        try {
+            const unlocked = await this.maintenance.unlockRestarts();
+            if (unlocked) {
+                this.restartLocked = false;
+                this.inMaintenance = false;
+                this.outcomeBadge = { message: 'Resuming - the server will start back up shortly.', success: true };
+            } else {
+                this.outcomeBadge = { message: 'Could not unlock - try Unlock Server Restart manually.', success: false };
+            }
+        } finally {
+            this.maintenanceBusy = false;
+        }
     }
 
     public async loadBackups(): Promise<void> {
