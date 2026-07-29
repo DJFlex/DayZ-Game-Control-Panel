@@ -10,6 +10,10 @@
             >
                 {{ outcomeBadge.message }}
             </ngb-alert>
+            <div class="s-nav">
+                <span class="s-nav-label">Jump to</span>
+                <button type="button" class="s-nav-chip" *ngFor="let s of sections" (click)="scrollToSection(s)">{{ s }}</button>
+            </div>
             <form (ngSubmit)="onSubmit()" #configForm="ngForm">
                 <strong>General</strong>
                 <hr>
@@ -696,6 +700,11 @@
                             <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
                         </div>
                     </div>
+                </div>
+
+                <div class="s-savebar">
+                    <button type="submit" class="btn btn-success" [disabled]="!configForm.form.valid">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
                 </div>
             </form>
         </div>

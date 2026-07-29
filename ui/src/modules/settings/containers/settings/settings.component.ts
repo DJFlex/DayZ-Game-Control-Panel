@@ -35,9 +35,23 @@ export class SettingsComponent implements OnInit {
 
     public serverCfgProps?: Property[];
 
+    // Section headers in the form, for the quick-jump nav bar.
+    public readonly sections = [
+        'General', 'Admins', 'Web', 'Discord', 'DayZ', 'Mods', 'DayZ StartFlags',
+        'Backups', 'Steam', 'Events', 'Hooks', 'Metrics', 'Server.cfg',
+    ];
+
     public constructor(
         public appCommon: AppCommonService,
     ) {}
+
+    /** Smooth-scroll to a section header by its text (no per-field edits needed). */
+    public scrollToSection(name: string): void {
+        // eslint-disable-next-line no-undef
+        const el = Array.from(document.querySelectorAll('sb-settings form > strong'))
+            .find((e) => e.textContent?.trim() === name) as HTMLElement | undefined;
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     public onSubmit(): void {
         this.loading = true;

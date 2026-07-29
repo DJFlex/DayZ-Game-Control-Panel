@@ -18,3 +18,66 @@
         margin-right: 1em;
     }
 }
+
+// ---- section jump-nav (sticky top) ----
+.s-nav {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 0;
+    margin-bottom: 10px;
+    background: #fff;
+    border-bottom: 1px solid rgba(0, 0, 0, .1);
+}
+.s-nav-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    color: #6c757d;
+    margin-right: 4px;
+}
+.s-nav-chip {
+    background: rgba(127, 127, 127, .12);
+    border: 1px solid rgba(127, 127, 127, .28);
+    border-radius: 99px;
+    padding: 4px 11px;
+    font-size: 12.5px;
+    color: inherit;
+    cursor: pointer;
+    font-family: inherit;
+
+    &:hover { border-color: #57a6ff; color: #57a6ff; }
+}
+
+// ---- sticky save bar (bottom) ----
+.s-savebar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding: 12px 0;
+    margin-top: 16px;
+    background: #fff;
+    border-top: 1px solid rgba(0, 0, 0, .1);
+}
+
+// ---- section headers ----
+form > strong {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 10px;
+    padding-top: 6px;
+}
+
+// Dark theme: match the card surface so the sticky bars aren't white blocks.
+:host-context(html[data-theme='dark']) {
+    .s-nav { background: #262b33; border-bottom-color: #3a414d; }
+    .s-savebar { background: #262b33; border-top-color: #3a414d; }
+}
