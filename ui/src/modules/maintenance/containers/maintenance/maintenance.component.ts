@@ -1,17 +1,32 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { MaintenanceService } from '../../services/maintenance.service';
+import { AppCommonService } from '../../../app-common/services/app-common.service';
+import { MetricTypeEnum, MetricWrapper, RconPlayer, ServerState, SystemReport } from '../../../app-common/models';
 
 @Component({
     selector: 'sb-maintenance',
     templateUrl: './maintenance.component.html',
     styleUrls: ['maintenance.component.scss'],
 })
-export class MaintenanceComponent implements OnInit {
+export class MaintenanceComponent implements OnInit, OnDestroy {
 
     public outcomeBadge?: {
         message: string;
         success: boolean;
     };
+
+    // Live status bar.
+    public serverState?: ServerState;
+    public playerCount?: number;
+
+    // DZSM has no "is locked" query, so these reflect the last action taken from
+    // this page: they start Off and flip when toggled.
+    public serverLocked = false;
+    public restartLocked = false;
+
+    private destroy$ = new Subject<void>();
 
     // RCON console: newest entry first.
     public consoleHistory: {
@@ -29,10 +44,70 @@ export class MaintenanceComponent implements OnInit {
 
     public constructor(
         private maintenance: MaintenanceService,
+        private common: AppCommonService,
     ) {}
 
     public ngOnInit(): void {
         void this.loadBackups();
+
+        this.common.getApiFetcher<MetricTypeEnum.SYSTEM, MetricWrapper<SystemReport>>(MetricTypeEnum.SYSTEM)
+            .latestData.pipe(takeUntil(this.destroy$))
+            .subscribe((x) => { this.serverState = x?.value?.serverState; });
+
+        this.common.getApiFetcher<MetricTypeEnum.PLAYERS, MetricWrapper<RconPlayer[]>>(MetricTypeEnum.PLAYERS)
+            .latestData.pipe(takeUntil(this.destroy$))
+            .subscribe((x) => { this.playerCount = x?.value?.length; });
+    }
+
+    public ngOnDestroy(): void {
+        this.destroy$.next();
+        this.destroy$.complete();
+    }
+
+    public get serverOnline(): boolean {
+        return this.serverState === ServerState.STARTED;
+    }
+
+    public get serverStateLabel(): string {
+        switch (this.serverState) {
+            case ServerState.STARTED: return 'Online';
+            case ServerState.STARTING: return 'Starting';
+            case ServerState.STOPPING: return 'Stopping';
+            default: return 'Stopped';
+        }
+    }
+
+    /** Next 4-hourly restart boundary (matches the current 00/04/08/… schedule). */
+    public get nextRestart(): { time: string; inMin: number } {
+        const now = new Date();
+        const next = new Date(now);
+        next.setHours((Math.floor(now.getHours() / 4) + 1) * 4, 0, 0, 0);
+        return {
+            time: next.toTimeString().slice(0, 5),
+            inMin: Math.max(0, Math.round((next.getTime() - now.getTime()) / 60000)),
+        };
+    }
+
+    public async toggleServerLock(): Promise<void> {
+        const ok = this.serverLocked ? await this.maintenance.unlockServer() : await this.maintenance.lockServer();
+        if (ok) {
+            this.serverLocked = !this.serverLocked;
+        }
+        this.outcomeBadge = {
+            message: ok ? (this.serverLocked ? 'Server locked' : 'Server unlocked') : 'Failed to change server lock',
+            success: ok,
+        };
+    }
+
+    public async toggleRestartLock(): Promise<void> {
+        const ok = this.restartLocked ? await this.maintenance.unlockRestarts() : await this.maintenance.lockRestarts();
+        if (ok) {
+            this.restartLocked = !this.restartLocked;
+        }
+        this.outcomeBadge = {
+            message: ok ? (this.restartLocked ? 'Restarts locked' : 'Restarts unlocked') : 'Failed to change restart lock',
+            success: ok,
+        };
     }
 
     public async loadBackups(): Promise<void> {
@@ -40,7 +115,7 @@ export class MaintenanceComponent implements OnInit {
         this.backups = (list || []).sort((a, b) => b.mtime - a.mtime);
     }
 
-    private exactBooleanParse(val?: string): boolean | undefined {
+    private exactBooleanParse(val?: string | boolean): boolean | undefined {
         val = val + '';
         if (val === 'true') {
             return true;
@@ -51,7 +126,7 @@ export class MaintenanceComponent implements OnInit {
         }
     }
 
-    public async updateServer(validate?: string): Promise<void> {
+    public async updateServer(validate?: string | boolean): Promise<void> {
         const success = await this.maintenance.updateServer(this.exactBooleanParse(validate));
         if (success) {
             this.outcomeBadge = {
@@ -66,7 +141,7 @@ export class MaintenanceComponent implements OnInit {
         }
     }
 
-    public async updateMods(validate?: string, force?: string): Promise<void> {
+    public async updateMods(validate?: string | boolean, force?: string | boolean): Promise<void> {
         const success = await this.maintenance.updateMods(this.exactBooleanParse(validate), this.exactBooleanParse(force));
         if (success) {
             this.outcomeBadge = {

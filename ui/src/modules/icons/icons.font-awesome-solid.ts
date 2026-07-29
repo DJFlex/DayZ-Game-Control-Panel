@@ -50,6 +50,15 @@ import {
     faFolder,
     faFileAlt,
     faEdit,
+    faDownload,
+    faDatabase,
+    faHistory,
+    faSatelliteDish,
+    faTerminal,
+    faCheck,
+    faPowerOff,
+    faPaperPlane,
+    faClock,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const fontAwesomeSolidIcons = {
@@ -102,4 +111,13 @@ export const fontAwesomeSolidIcons = {
     faFolder,
     faFileAlt,
     faEdit,
+    faDownload,
+    faDatabase,
+    faHistory,
+    faSatelliteDish,
+    faTerminal,
+    faCheck,
+    faPowerOff,
+    faPaperPlane,
+    faClock,
 };

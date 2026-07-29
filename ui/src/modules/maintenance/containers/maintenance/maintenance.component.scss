@@ -1,63 +1,260 @@
 @import 'styles/variables.scss';
 
+// Maintenance page redesign (designer Option 1a — "task-card grid").
+// Dark-first: the palette matches the app's dark theme. Light-theme parity is a
+// follow-up. Fonts fall back to system UI/mono until IBM Plex is bundled.
 
-.row.spaced {
-    margin-bottom: 2.5rem;
+$m-card:        #1b2026;
+$m-card-bd:     #2e343b;
+$m-divider:     #262c33;
+$m-input-bg:    #14171c;
+$m-input-bd:    #3a4149;
+$m-text:        #e9ecef;
+$m-muted:       #8b949e;
+$m-muted-2:     #6b7480;
+$m-blue:        #0d6efd;
+$m-blue-hover:  #0b5ed7;
+$m-accent:      #4da3ff;
+$m-green:       #3fb950;
+$m-red:         #dc3545;
+$m-red-text:    #f16b79;
+$m-red-bd:      #b02a37;
+$m-amber:       #ffc107;
+
+$m-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+$m-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+
+.m-page {
+    font-family: $m-sans;
+    color: $m-text;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
 }
 
-.rcon-hint {
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+.m-muted { color: $m-muted; font-weight: 400; }
 
-    code {
-        background: rgba(127, 127, 127, 0.18);
-        padding: 0.05rem 0.3rem;
-        border-radius: 3px;
-    }
+// ---- status bar ----
+.m-statusbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    background: $m-card;
+    border: 1px solid $m-card-bd;
+    border-radius: 10px;
+    padding: 12px 0;
+}
+.m-stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px;
+
+    & + .m-stat { border-left: 1px solid $m-divider; }
+    fa-icon { color: $m-muted-2; font-size: 13px; }
+}
+.m-stat-label { font-size: 10.5px; font-weight: 700; letter-spacing: .8px; color: $m-muted; }
+.m-stat-val   { font-size: 13.5px; font-weight: 700; color: $m-text;
+    &.ok { color: $m-green; } &.bad { color: $m-red-text; }
+}
+.m-dot {
+    width: 9px; height: 9px; border-radius: 50%; flex: none;
+    &.ok { background: $m-green; } &.bad { background: $m-red-text; }
 }
 
-// Terminal-style output: intentionally dark in both light and dark themes,
-// so it reads as a console regardless of the app theme.
-.rcon-console-output {
-    max-height: 320px;
-    overflow-y: auto;
-    width: 100%;
-    margin-top: 1rem;
-    padding: 0.6rem 0.75rem;
-    background: #16191d;
-    color: #d4d7da;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    border-radius: 4px;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 0.85rem;
-    line-height: 1.35;
+// ---- cards ----
+.m-grid {
+    display: grid;
+    grid-template-columns: 1.45fr 1fr;
+    gap: 18px;
 }
+.m-span2 { grid-column: 1 / -1; }
 
-.rcon-entry {
-    margin-bottom: 0.6rem;
-
-    &:last-child {
-        margin-bottom: 0;
-    }
+.m-card {
+    background: $m-card;
+    border: 1px solid $m-card-bd;
+    border-radius: 10px;
 }
+.m-card-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 18px;
+    border-bottom: 1px solid $m-divider;
+    font-size: 14px;
+    font-weight: 700;
 
-.rcon-cmd {
-    color: #7fd1ff;
+    fa-icon { color: $m-muted-2; font-size: 13px; }
+}
+.m-card-body { padding: 4px 18px 14px; }
+.m-card-body.m-stack { padding: 16px 18px; display: flex; flex-direction: column; gap: 13px; }
+
+// ---- rows ----
+.m-rows .m-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 0;
+
+    & + .m-row { border-top: 1px solid $m-divider; }
+}
+.m-row--block { display: block; }
+.m-row-title { font-size: 14.5px; font-weight: 600; }
+.m-row-sub   { font-size: 12.5px; color: $m-muted; margin-top: 2px; }
+.m-row-controls { display: flex; align-items: center; gap: 10px; }
+
+.m-sublabel { font-size: 12px; font-weight: 700; letter-spacing: .6px; color: $m-muted; margin-bottom: 8px; }
+
+// ---- buttons ----
+.m-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 6px;
+    padding: 9px 16px;
+    font-size: 13.5px;
     font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    border: 1px solid transparent;
+    background: transparent;
+    color: $m-text;
+    transition: background .12s ease;
 
-    &.error {
-        color: #ff6b6b;
-    }
+    &:disabled { opacity: .55; cursor: not-allowed; }
+    fa-icon { font-size: 12px; }
+}
+.m-btn--block { width: 100%; justify-content: center; }
+.m-btn--primary { background: $m-blue; border-color: $m-blue; color: #fff;
+    &:hover:not(:disabled) { background: $m-blue-hover; border-color: $m-blue-hover; } }
+.m-btn--danger { background: $m-red; border-color: $m-red; color: #fff;
+    &:hover:not(:disabled) { background: #bb2d3b; } }
+.m-btn--danger-outline { color: $m-red-text; border-color: $m-red-bd;
+    &:hover:not(:disabled) { background: rgba(220, 53, 69, .14); } }
+.m-btn--warn { background: $m-amber; border-color: $m-amber; color: #1c1608; font-weight: 700;
+    &:hover:not(:disabled) { background: #e5ad00; } }
+
+// ---- checkboxes ----
+.m-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: $m-input-bg;
+    border: 1px solid $m-input-bd;
+    border-radius: 6px;
+    padding: 7px 11px;
+    font-size: 13px;
+    color: #c3ccd5;
+    cursor: pointer;
+    margin: 0;
+
+    input { accent-color: $m-blue; width: 14px; height: 14px; margin: 0; }
 }
 
-.rcon-out {
-    margin: 0.15rem 0 0;
-    padding: 0;
+// ---- toggle switch ----
+.m-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
     background: transparent;
     border: 0;
-    color: inherit;
+    cursor: pointer;
+    color: $m-muted;
     font-family: inherit;
-    font-size: inherit;
-    white-space: pre-wrap;
-    word-break: break-word;
+    font-size: 12.5px;
+}
+.m-switch-track {
+    width: 36px; height: 20px; border-radius: 999px; background: $m-input-bd;
+    position: relative; flex: none; transition: background .12s ease;
+}
+.m-switch-knob {
+    position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+    border-radius: 50%; background: #aeb7c0; transition: left .12s ease, background .12s ease;
+}
+.m-switch.on {
+    .m-switch-track { background: $m-blue; }
+    .m-switch-knob { left: 18px; background: #fff; }
+    .m-switch-txt { color: $m-accent; }
+}
+
+// ---- inputs / select ----
+.m-input, .m-select {
+    background: $m-input-bg;
+    border: 1px solid $m-input-bd;
+    border-radius: 6px;
+    padding: 9px 12px;
+    color: $m-text;
+    font-size: 13.5px;
+    font-family: inherit;
+    outline: none;
+
+    &:focus { border-color: $m-accent; }
+    &:disabled { opacity: .6; }
+}
+.m-select { width: 100%; padding: 10px 12px; }
+.m-inline { display: flex; gap: 9px; }
+.m-inline .m-input { flex: 1; min-width: 0; }
+
+// ---- warning box ----
+.m-warn {
+    display: flex;
+    gap: 10px;
+    background: rgba(255, 193, 7, .07);
+    border: 1px solid rgba(255, 193, 7, .32);
+    border-radius: 8px;
+    padding: 11px 13px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: #e2d7b4;
+
+    fa-icon { color: $m-amber; font-size: 13px; margin-top: 1px; }
+    b { color: #ffd75e; }
+}
+
+// ---- RCON chips in the console header ----
+.m-chips { margin-left: auto; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.m-chip-hint { font-size: 12px; color: $m-muted; margin-right: 3px; }
+.m-chip {
+    background: #23161a; border: 1px solid #4a2730; color: #ff8fa3;
+    font: 12px #{$m-mono}; padding: 3px 8px; border-radius: 5px;
+}
+
+// ---- console ----
+.m-console {
+    background: #0b0e11;
+    border: 1px solid $m-divider;
+    border-radius: 8px;
+    padding: 13px 15px;
+    max-height: 340px;
+    overflow-y: auto;
+    font: 12.5px/1.7 #{$m-mono};
+}
+.m-console-entry { margin-bottom: .5rem; &:last-child { margin-bottom: 0; } }
+.m-console-cmd { color: $m-text; font-weight: 600; &.error .m-prompt { color: $m-red-text; } }
+.m-console-out {
+    margin: .15rem 0 0; padding: 0; background: transparent; border: 0;
+    color: #9aa4af; font: inherit; white-space: pre-wrap; word-break: break-word;
+}
+.m-prompt { color: $m-green; font-weight: 700; }
+
+.m-console-field {
+    flex: 1; display: flex; align-items: center; gap: 9px;
+    background: $m-input-bg; border: 1px solid $m-input-bd; border-radius: 6px; padding: 0 12px;
+
+    input {
+        flex: 1; background: transparent; border: none; padding: 10px 0;
+        color: $m-text; font: 13px #{$m-mono}; outline: none;
+    }
+}
+
+// ---- responsive ----
+@media (max-width: 991px) {
+    .m-grid { grid-template-columns: 1fr; }
+    .m-span2 { grid-column: auto; }
+}
+@media (max-width: 575px) {
+    .m-row { flex-direction: column; align-items: stretch; }
+    .m-row-controls { justify-content: flex-end; }
 }

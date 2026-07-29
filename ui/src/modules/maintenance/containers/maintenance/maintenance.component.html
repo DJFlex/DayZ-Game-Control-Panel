@@ -1,175 +1,210 @@
 <sb-layout-dashboard>
     <sb-dashboard-head title="Maintenance" [hideBreadcrumbs]="false"></sb-dashboard-head>
-    <sb-card>
-        <div class="card-header">
-            <fa-icon class="mr-1" [icon]='["fas", "calendar-alt"]'></fa-icon>Maintenance
+
+    <div class="m-page">
+
+        <ngb-alert *ngIf="outcomeBadge" [type]="outcomeBadge.success ? 'success' : 'danger'" (closed)="outcomeBadge = undefined">
+            {{ outcomeBadge.message }}
+        </ngb-alert>
+
+        <!-- ===== status bar ===== -->
+        <div class="m-statusbar">
+            <div class="m-stat">
+                <span class="m-dot" [class.ok]="serverOnline" [class.bad]="!serverOnline"></span>
+                <div>
+                    <div class="m-stat-label">SERVER</div>
+                    <div class="m-stat-val" [class.ok]="serverOnline" [class.bad]="!serverOnline">{{ serverStateLabel }}</div>
+                </div>
+            </div>
+            <div class="m-stat">
+                <fa-icon [icon]="['fas','user']"></fa-icon>
+                <div>
+                    <div class="m-stat-label">PLAYERS</div>
+                    <div class="m-stat-val">{{ playerCount === undefined ? '—' : playerCount }}</div>
+                </div>
+            </div>
+            <div class="m-stat">
+                <fa-icon [icon]="serverLocked ? ['fas','lock'] : ['fas','lock-open']"></fa-icon>
+                <div>
+                    <div class="m-stat-label">SERVER LOCK</div>
+                    <div class="m-stat-val">{{ serverLocked ? 'On' : 'Off' }}</div>
+                </div>
+            </div>
+            <div class="m-stat">
+                <fa-icon [icon]="['fas','history']"></fa-icon>
+                <div>
+                    <div class="m-stat-label">RESTART LOCK</div>
+                    <div class="m-stat-val">{{ restartLocked ? 'On' : 'Off' }}</div>
+                </div>
+            </div>
+            <div class="m-stat">
+                <fa-icon [icon]="['fas','database']"></fa-icon>
+                <div>
+                    <div class="m-stat-label">LAST BACKUP</div>
+                    <div class="m-stat-val">{{ backups.length ? (backups[0].mtime | date:'dd/MM HH:mm') : '—' }}</div>
+                </div>
+            </div>
+            <div class="m-stat">
+                <fa-icon [icon]="['fas','clock']"></fa-icon>
+                <div>
+                    <div class="m-stat-label">NEXT RESTART</div>
+                    <div class="m-stat-val">{{ nextRestart.time }} <span class="m-muted">(in {{ nextRestart.inMin }} min)</span></div>
+                </div>
+            </div>
         </div>
-        <div class="card-body">
 
-            <ngb-alert  *ngIf="outcomeBadge"
-                        [type]="outcomeBadge.success ? 'success' : 'danger'"
-            >
-                {{ outcomeBadge.message }}
-            </ngb-alert>
+        <!-- ===== task-card grid ===== -->
+        <div class="m-grid">
 
-            <strong>Updates / Backups</strong>
-            <hr>
-            <div class="row spaced">
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="updateServer(validateServerUpdate.value)">
-                        Update Server
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <div>
-                        <label for="validate-server-update" class="mr-1">
-                            Validate?
-                        </label>
-                        <input #validateServerUpdate id="validate-server-update" type="checkbox" [value]="true">
+            <!-- Server Updates -->
+            <div class="m-card m-span2">
+                <div class="m-card-head"><fa-icon [icon]="['fas','download']"></fa-icon><span>Server Updates</span></div>
+                <div class="m-card-body m-rows">
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Update Server</div>
+                            <div class="m-row-sub">SteamCMD update of the server installation</div>
+                        </div>
+                        <div class="m-row-controls">
+                            <label class="m-check"><input type="checkbox" #validateSrv>Validate</label>
+                            <button class="m-btn m-btn--primary" (click)="updateServer(validateSrv.checked)">Update Server</button>
+                        </div>
+                    </div>
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Update Mods</div>
+                            <div class="m-row-sub">Re-download workshop mods and sync to the server</div>
+                        </div>
+                        <div class="m-row-controls">
+                            <label class="m-check"><input type="checkbox" #validateMods>Validate</label>
+                            <label class="m-check"><input type="checkbox" #forceMods>Force</label>
+                            <button class="m-btn m-btn--primary" (click)="updateMods(validateMods.checked, forceMods.checked)">Update Mods</button>
+                        </div>
+                    </div>
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Create Backup</div>
+                            <div class="m-row-sub">Snapshot of the mpmissions folder</div>
+                        </div>
+                        <button class="m-btn m-btn--primary" (click)="createBackup()">Create Backup</button>
                     </div>
                 </div>
             </div>
-            <div class="row spaced">
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="updateMods(validateModUpdate.value, forceModUpdate.value)">
-                        Update Mods
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <div>
-                        <label for="validate-mod-update" class="mr-1">
-                            Validate?
-                        </label>
-                        <input #validateModUpdate id="validate-mod-update" type="checkbox" [value]="true">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div title="Disables mod meta data checks and always triggers mod update.">
-                        <label for="force-mod-update" class="mr-1">
-                            Force?
-                        </label>
-                        <input #forceModUpdate id="force-mod-update" type="checkbox" [value]="false">
-                    </div>
-                </div>
-            </div>
-            <div class="row spaced">
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="createBackup()">
-                        Create Backup
-                    </button>
-                </div>
-            </div>
 
-            <strong>Restore Backup</strong>
-            <hr>
-            <p class="text-muted restore-hint">
-                Restore the mpmissions folder from a backup.
-                <strong>Stop the server first</strong> (Lock Server Restart, then Shutdown).
-                A safety backup of the current mission is taken automatically before restoring.
-            </p>
-            <div class="row spaced">
-                <div class="col-md-6">
-                    <select class="form-control" #restoreSelect [disabled]="restoreBusy || !backups.length">
+            <!-- Restore Backup -->
+            <div class="m-card">
+                <div class="m-card-head"><fa-icon [icon]="['fas','database']"></fa-icon><span>Restore Backup</span></div>
+                <div class="m-card-body m-stack">
+                    <div class="m-warn">
+                        <fa-icon [icon]="['fas','exclamation-triangle']"></fa-icon>
+                        <div><b>Stop the server first</b> — Lock Server Restart, then Shutdown. A safety backup of the current mission is taken automatically before restoring.</div>
+                    </div>
+                    <select class="m-select" #restoreSelect [disabled]="restoreBusy || !backups.length">
                         <option *ngIf="!backups.length" value="">No backups available</option>
                         <option *ngFor="let b of backups" [value]="b.file">{{ b.file }} &mdash; {{ b.mtime | date:'dd/MM/yyyy HH:mm' }}</option>
                     </select>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-warning" [disabled]="restoreBusy || !backups.length"
-                            (click)="restoreBackup(restoreSelect.value)">
+                    <button class="m-btn m-btn--warn m-btn--block" [disabled]="restoreBusy || !backups.length" (click)="restoreBackup(restoreSelect.value)">
                         {{ restoreBusy ? 'Restoring...' : 'Restore Selected' }}
                     </button>
                 </div>
             </div>
 
-            <strong>Restarts</strong>
-            <hr>
-            <div class="row spaced">
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="restartServer(false)">
-                        Restart Server
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" title="Kills the server immediately (Use this only when its totally stuck)" (click)="restartServer(true)">
-                        Restart Server (Force)
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" title="Prevents the manager from restarting the server until re-enabled" (click)="lockRestarts()">
-                        Lock Server Restart
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="unlockRestarts()">
-                        UnLock Server Restart
-                    </button>
-                </div>
-            </div>
-            <strong>RCON</strong>
-            <hr>
-            <div class="row spaced">
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="lockServer()">
-                        Lock Server
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="unlockServer()">
-                        UnLock Server
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="kickAll()">
-                        Kick All
-                    </button>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="shutdown()">
-                        Shutdown
-                    </button>
-                </div>
-            </div>
-            <div class="row spaced">
-                <div class="col-md-9">
-                    <input class="form-control form-control" #globalMessageInput>
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" (click)="sendMessage(globalMessageInput.value); globalMessageInput.value = '';">
-                        Send Global Message
-                    </button>
+            <!-- Restarts -->
+            <div class="m-card">
+                <div class="m-card-head"><fa-icon [icon]="['fas','history']"></fa-icon><span>Restarts</span></div>
+                <div class="m-card-body m-rows">
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Restart lock</div>
+                            <div class="m-row-sub">Blocks scheduled and manual restarts while enabled</div>
+                        </div>
+                        <button class="m-switch" [class.on]="restartLocked" (click)="toggleRestartLock()" [attr.aria-pressed]="restartLocked">
+                            <span class="m-switch-txt">{{ restartLocked ? 'Locked' : 'Unlocked' }}</span>
+                            <span class="m-switch-track"><span class="m-switch-knob"></span></span>
+                        </button>
+                    </div>
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Restart Server</div>
+                            <div class="m-row-sub">Graceful — players are warned before the restart</div>
+                        </div>
+                        <button class="m-btn m-btn--primary" (click)="restartServer(false)">Restart Server</button>
+                    </div>
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Restart (Force)</div>
+                            <div class="m-row-sub">Immediate — skips player warnings</div>
+                        </div>
+                        <button class="m-btn m-btn--danger-outline" (click)="restartServer(true)">Restart (Force)</button>
+                    </div>
                 </div>
             </div>
 
-            <strong>RCON Console</strong>
-            <hr>
-            <p class="text-muted rcon-hint">
-                Send a raw BattlEye/RCON command (e.g. <code>players</code>, <code>bans</code>,
-                <code>#lock</code>, <code>kick 0 reason</code>). Output appears below, newest first.
-            </p>
-            <div class="row">
-                <div class="col-md-9">
-                    <input class="form-control" #rconInput placeholder="Type an RCON command and press Enter"
-                           [disabled]="consoleBusy"
-                           (keyup.enter)="runRconCommand(rconInput.value); rconInput.value = '';">
-                </div>
-                <div class="col-md-3">
-                    <button class="btn btn-primary" [disabled]="consoleBusy"
-                            (click)="runRconCommand(rconInput.value); rconInput.value = '';">
-                        {{ consoleBusy ? 'Running...' : 'Run Command' }}
-                    </button>
-                </div>
-            </div>
-            <div class="row spaced" *ngIf="consoleHistory.length">
-                <div class="col-12">
-                    <div class="rcon-console-output">
-                        <div class="rcon-entry" *ngFor="let entry of consoleHistory">
-                            <div class="rcon-cmd" [class.error]="!entry.success">&gt; {{ entry.command }}</div>
-                            <pre class="rcon-out">{{ entry.output }}</pre>
+            <!-- RCON quick actions -->
+            <div class="m-card">
+                <div class="m-card-head"><fa-icon [icon]="['fas','satellite-dish']"></fa-icon><span>RCON</span></div>
+                <div class="m-card-body m-rows">
+                    <div class="m-row">
+                        <div class="m-row-label">
+                            <div class="m-row-title">Server lock</div>
+                            <div class="m-row-sub">Prevents new players from joining</div>
+                        </div>
+                        <button class="m-switch" [class.on]="serverLocked" (click)="toggleServerLock()" [attr.aria-pressed]="serverLocked">
+                            <span class="m-switch-txt">{{ serverLocked ? 'Locked' : 'Unlocked' }}</span>
+                            <span class="m-switch-track"><span class="m-switch-knob"></span></span>
+                        </button>
+                    </div>
+                    <div class="m-row">
+                        <div class="m-row-title">Kick All</div>
+                        <button class="m-btn m-btn--danger-outline" (click)="kickAll()">Kick All</button>
+                    </div>
+                    <div class="m-row">
+                        <div class="m-row-title">Shutdown</div>
+                        <button class="m-btn m-btn--danger" (click)="shutdown()"><fa-icon [icon]="['fas','power-off']"></fa-icon>Shutdown</button>
+                    </div>
+                    <div class="m-row m-row--block">
+                        <div class="m-sublabel">GLOBAL MESSAGE</div>
+                        <div class="m-inline">
+                            <input class="m-input" #globalMessageInput placeholder="Message to all players…" (keyup.enter)="sendMessage(globalMessageInput.value); globalMessageInput.value = '';">
+                            <button class="m-btn m-btn--primary" (click)="sendMessage(globalMessageInput.value); globalMessageInput.value = '';"><fa-icon [icon]="['fas','paper-plane']"></fa-icon>Send</button>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
-    </sb-card>
+
+        <!-- ===== RCON console ===== -->
+        <div class="m-card">
+            <div class="m-card-head">
+                <fa-icon [icon]="['fas','terminal']"></fa-icon><span>RCON Console</span>
+                <div class="m-chips">
+                    <span class="m-chip-hint">e.g.</span>
+                    <span class="m-chip">players</span>
+                    <span class="m-chip">bans</span>
+                    <span class="m-chip">#lock</span>
+                    <span class="m-chip">kick 0 reason</span>
+                </div>
+            </div>
+            <div class="m-card-body m-stack">
+                <div class="m-console" *ngIf="consoleHistory.length">
+                    <div class="m-console-entry" *ngFor="let entry of consoleHistory">
+                        <div class="m-console-cmd" [class.error]="!entry.success"><span class="m-prompt">&#10095;</span> {{ entry.command }}</div>
+                        <pre class="m-console-out">{{ entry.output }}</pre>
+                    </div>
+                </div>
+                <div class="m-inline">
+                    <div class="m-console-field">
+                        <span class="m-prompt">&#10095;</span>
+                        <input #rconInput placeholder="Type an RCON command and press Enter" [disabled]="consoleBusy"
+                               (keyup.enter)="runRconCommand(rconInput.value); rconInput.value = '';">
+                    </div>
+                    <button class="m-btn m-btn--primary" [disabled]="consoleBusy" (click)="runRconCommand(rconInput.value); rconInput.value = '';">
+                        {{ consoleBusy ? 'Running...' : 'Run Command' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
 </sb-layout-dashboard>
