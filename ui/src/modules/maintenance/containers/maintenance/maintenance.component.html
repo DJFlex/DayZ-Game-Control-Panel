@@ -54,15 +54,15 @@
         </div>
 
         <!-- ===== stop for maintenance ===== -->
-        <div class="m-maint" [class.active]="inMaintenance">
+        <div class="m-maint" [class.active]="showResume">
             <div class="m-maint-txt">
-                <div class="m-maint-title">{{ inMaintenance ? 'Server is stopped for maintenance' : 'Making changes?' }}</div>
-                <div class="m-maint-sub">{{ inMaintenance ? 'It stays off until you resume.' : 'Stops the server safely (locks restarts + shuts down) so it stays off while you work.' }}</div>
+                <div class="m-maint-title">{{ showResume ? 'Server is stopped for maintenance' : 'Making changes?' }}</div>
+                <div class="m-maint-sub">{{ showResume ? 'It stays off until you resume.' : 'Stops the server safely (locks restarts + shuts down) so it stays off while you work.' }}</div>
             </div>
-            <button *ngIf="!inMaintenance" class="m-btn m-btn--danger m-btn--lg" [disabled]="maintenanceBusy" (click)="stopForMaintenance()">
+            <button *ngIf="!showResume" class="m-btn m-btn--danger m-btn--lg" [disabled]="maintenanceBusy" (click)="stopForMaintenance()">
                 <fa-icon [icon]="['fas','power-off']"></fa-icon>{{ maintenanceBusy ? 'Stopping...' : 'Stop for Maintenance' }}
             </button>
-            <button *ngIf="inMaintenance" class="m-btn m-btn--primary m-btn--lg" [disabled]="maintenanceBusy" (click)="resumeFromMaintenance()">
+            <button *ngIf="showResume" class="m-btn m-btn--primary m-btn--lg" [disabled]="maintenanceBusy" (click)="resumeFromMaintenance()">
                 <fa-icon [icon]="['fas','check']"></fa-icon>{{ maintenanceBusy ? 'Resuming...' : 'Resume Server' }}
             </button>
         </div>

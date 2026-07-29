@@ -26,9 +26,17 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     public serverLocked = false;
     public restartLocked = false;
 
-    // True while the server is intentionally stopped for maintenance.
+    // Set true immediately on "Stop for Maintenance" for instant feedback; the
+    // getter below also derives it from live server state so it survives leaving
+    // and re-opening the page.
     public inMaintenance = false;
     public maintenanceBusy = false;
+
+    public get showResume(): boolean {
+        return this.inMaintenance
+            || this.serverState === ServerState.STOPPED
+            || this.serverState === ServerState.STOPPING;
+    }
 
     private destroy$ = new Subject<void>();
 
