@@ -81,4 +81,13 @@ export class LogMonitorComponent implements OnInit, OnDestroy, AfterViewInit {
         // console.warn('test', this.container);
     }
 
+    /** Severity CSS class from a log line's content (existing dark-theme colours). */
+    public severityClass(msg?: string): string {
+        const m = msg || '';
+        if (/\(E\)|ERROR|Error:|error:|Exception/.test(m)) { return 'msg-err'; }
+        if (/!!!|\(W\)|[Ww]arning|WARN/.test(m)) { return 'msg-warn'; }
+        if (/successfully|Mission read|Connected/.test(m)) { return 'msg-success'; }
+        return '';
+    }
+
 }
