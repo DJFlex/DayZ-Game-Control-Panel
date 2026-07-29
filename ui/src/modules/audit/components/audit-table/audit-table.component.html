@@ -20,17 +20,17 @@
         </thead>
         <tbody>
             <tr *ngFor="let audit of audits$ | async">
-                <td scope="row">{{ audit.timestamp | date:'short' }}</td>
+                <td scope="row" class="a-mono a-muted">{{ audit.timestamp | date:'short' }}</td>
                 <td>
                     <ngb-highlight [result]="audit.user" [term]="auditService.searchTerm"></ngb-highlight>
                 </td>
                 <td>
-                    <ngb-highlight [result]="audit.value.resource" [term]="auditService.searchTerm"></ngb-highlight>
+                    <span class="a-badge" [ngClass]="actionClass(audit.value.resource)">{{ actionLabel(audit.value.resource) }}</span>
                 </td>
-                <td>
+                <td class="a-muted">
                     {{ mapTrigger(audit.value.accept) }}
                 </td>
-                <td>
+                <td class="a-mono a-muted a-payload">
                     {{ audit.value.body | json }}
                 </td>
             </tr>

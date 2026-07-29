@@ -59,4 +59,18 @@ export class AuditTableComponent implements OnInit {
         return 'Unknown';
     }
 
+    /** Colour class for the action badge, by action type. */
+    public actionClass(resource?: string): string {
+        const r = (resource || '').toLowerCase();
+        if (/(restart|shutdown|kick|ban|lock)/.test(r)) { return 'a-bad'; }
+        if (r.includes('backup')) { return 'a-ok'; }
+        if (/(global|message|rcon|command|write)/.test(r)) { return 'a-blue'; }
+        return 'a-neutral';
+    }
+
+    /** "readprofilefiles" -> "READ PROFILE FILES" is left to the data; just upper-case + spaced camelCase. */
+    public actionLabel(resource?: string): string {
+        return (resource || '').replace(/([a-z])([A-Z])/g, '$1 $2').toUpperCase();
+    }
+
 }

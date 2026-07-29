@@ -3,3 +3,22 @@
 thead > tr > th {
     cursor: pointer;
 }
+
+// Action badges + mono cells (theme-agnostic).
+.a-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 3px 9px;
+    border-radius: 99px;
+    white-space: nowrap;
+
+    &.a-neutral { background: rgba(127, 127, 127, .18); color: #9aa2ad; }
+    &.a-ok      { background: rgba(63, 185, 80, .14);  color: #3fb950; }
+    &.a-blue    { background: rgba(87, 166, 255, .16); color: #57a6ff; }
+    &.a-bad     { background: rgba(220, 53, 69, .14);  color: #f16b79; }
+}
+.a-mono { font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; font-size: 12px; }
+.a-muted { color: #9aa2ad; }
+.a-payload { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
