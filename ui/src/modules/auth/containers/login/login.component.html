@@ -1,76 +1,30 @@
 <sb-layout-auth>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-lg-5">
-                <div class="card shadow-lg border-0 rounded-lg mt-5">
-                    <div class="card-header">
-                        <div *ngIf="(branding.changes | async)?.logoLogin as logo" class="text-center mt-3">
-                            <img [src]="logo" alt="logo" style="max-height: 80px; max-width: 100%;" />
-                        </div>
-                        <h3 class="text-center font-weight-light my-4">
-                            {{ (branding.changes | async)?.loginHeading || 'Login' }}
-                        </h3>
-                        <p *ngIf="(branding.changes | async)?.loginTagline as tagline"
-                           class="text-center text-muted small mt-n2 mb-3"
-                        >
-                            {{ tagline }}
-                        </p>
-                    </div>
-                    <div class="card-body">
-                        <form>
-                            <div class="form-group">
-                                <label class="small mb-1" for="inputUser">Username</label>
-                                <input class="form-control py-4"
-                                       id="inputUser"
-                                       placeholder="Enter username"
-                                       [(ngModel)]="username"
-                                       [ngModelOptions]="{standalone: true}"
-                                />
-                            </div>
-                            <div class="form-group">
-                                <label class="small mb-1" for="inputPassword">Password</label>
-                                <input class="form-control py-4"
-                                       id="inputPassword"
-                                       type="password"
-                                       placeholder="Enter password"
-                                       [(ngModel)]="password"
-                                       [ngModelOptions]="{standalone: true}"
-                                />
-                            </div>
-                            <div class="form-group">
-                                <div class="custom-control custom-checkbox">
-                                    <input class="custom-control-input"
-                                           id="rememberPasswordCheck"
-                                           type="checkbox"
-                                           [(ngModel)]="remember"
-                                           [ngModelOptions]="{standalone: true}"
-                                    />
-                                    <label class="custom-control-label" for="rememberPasswordCheck">
-                                        Remember password
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="form-group" *ngIf="failure">
-                                <ngb-alert [dismissible]="false" [type]="'danger'">
-                                    <strong>Error!</strong> {{ failure }}
-                                </ngb-alert>
-                            </div>
-                            <div class="form-group d-flex align-items-center justify-content-between mt-4 mb-0">
-                                <!-- <a class="small" routerLink="/auth/forgot-password">Forgot Password?</a> -->
-                                <button class="btn btn-primary"
-                                        (click)="login()"
-                                        [disabled]="!username || !password"
-                                >
-                                    Login
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                    <!-- <div class="card-footer text-center">
-                        <div class="small"><a routerLink="/auth/register">Need an account? Sign up!</a></div>
-                    </div> -->
+    <div class="lg-card">
+        <div class="lg-panel">
+            <img *ngIf="(branding.changes | async)?.logoLogin as logo" [src]="logo" class="lg-logo" alt="logo" />
+            <div class="lg-title">{{ (branding.changes | async)?.loginHeading || 'Server Panel' }}</div>
+            <div class="lg-sub">{{ (branding.changes | async)?.loginTagline || 'Sign in to the server panel' }}</div>
+
+            <div class="lg-error" *ngIf="failure">{{ failure }}</div>
+
+            <form (ngSubmit)="login()">
+                <div class="lg-field">
+                    <label class="lg-label" for="lgUser">USERNAME</label>
+                    <input id="lgUser" type="text" autocomplete="username" placeholder="Enter username"
+                           [(ngModel)]="username" [ngModelOptions]="{standalone: true}" />
                 </div>
-            </div>
+                <div class="lg-field">
+                    <label class="lg-label" for="lgPass">PASSWORD</label>
+                    <input id="lgPass" type="password" autocomplete="current-password" placeholder="Enter password"
+                           [(ngModel)]="password" [ngModelOptions]="{standalone: true}" />
+                </div>
+                <label class="lg-remember">
+                    <input type="checkbox" [(ngModel)]="remember" [ngModelOptions]="{standalone: true}" /> Remember me
+                </label>
+                <button type="submit" class="lg-btn" [disabled]="!username || !password">Sign In</button>
+            </form>
+
+            <div class="lg-foot">Served locally by DayZ Server Manager</div>
         </div>
     </div>
 </sb-layout-auth>
