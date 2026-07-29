@@ -13,12 +13,12 @@
         <!-- Server state -->
         <div class="d-tile">
             <div class="d-tile-top">
-                <div class="d-chip" [class.ok]="serverOnline(d.sysw?.value?.serverState)" [class.bad]="!serverOnline(d.sysw?.value?.serverState)">
-                    <fa-icon [icon]="serverOnline(d.sysw?.value?.serverState) ? ['fas','check'] : ['fas','power-off']"></fa-icon>
+                <div class="d-chip" [ngClass]="serverStateClass(d.sysw?.value?.serverState)">
+                    <fa-icon [icon]="serverOnline(d.sysw?.value?.serverState) ? ['fas','check'] : (serverStatePending(d.sysw?.value?.serverState) ? ['fas','spinner'] : ['fas','power-off'])"></fa-icon>
                 </div>
                 <div class="d-tile-txt">
                     <div class="d-tile-label">SERVER STATE</div>
-                    <div class="d-tile-val" [class.ok]="serverOnline(d.sysw?.value?.serverState)" [class.bad]="!serverOnline(d.sysw?.value?.serverState)">
+                    <div class="d-tile-val" [ngClass]="serverStateClass(d.sysw?.value?.serverState)">
                         {{ serverStateLabel(d.sysw?.value?.serverState) }}
                     </div>
                 </div>

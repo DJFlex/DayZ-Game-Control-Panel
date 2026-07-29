@@ -46,6 +46,17 @@ export class DashboardCardsComponent implements OnInit {
         }
     }
 
+    public serverStatePending(s?: ServerState): boolean {
+        return s === ServerState.STARTING || s === ServerState.STOPPING;
+    }
+
+    /** ok = online (green), warn = starting/stopping (amber), bad = stopped (red). */
+    public serverStateClass(s?: ServerState): string {
+        if (this.serverOnline(s)) { return 'ok'; }
+        if (this.serverStatePending(s)) { return 'warn'; }
+        return 'bad';
+    }
+
     public cpuLabel(pct?: number | null): string {
         if (pct === undefined || pct === null) { return '—'; }
         if (pct < 40) { return 'Low'; }

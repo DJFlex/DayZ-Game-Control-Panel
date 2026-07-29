@@ -11,6 +11,7 @@ $d-muted:   #9aa2ad;
 $d-accent:  #57a6ff;
 $d-green:   #3fb950;
 $d-red:     #f16b79;
+$d-amber:   #e0a41a;
 $d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
 
 :host {
@@ -47,7 +48,7 @@ $d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
 .d-tile-txt { min-width: 0; }
 .d-tile-label { font-size: 10.5px; font-weight: 700; letter-spacing: .9px; color: $d-muted; }
 .d-tile-val   { font-size: 18px; font-weight: 700;
-    &.ok { color: $d-green; } &.bad { color: $d-red; }
+    &.ok { color: $d-green; } &.bad { color: $d-red; } &.warn { color: $d-amber; }
 }
 .d-tile-unit { font-size: 13px; color: $d-muted; font-weight: 400; }
 
@@ -58,6 +59,7 @@ $d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
     fa-icon { color: $d-accent; font-size: 15px; }
     &.ok { background: rgba(63, 185, 80, .14); fa-icon { color: $d-green; } }
     &.bad { background: rgba(241, 107, 121, .14); fa-icon { color: $d-red; } }
+    &.warn { background: rgba(224, 164, 26, .14); fa-icon { color: $d-amber; } }
 }
 
 .d-ring {
