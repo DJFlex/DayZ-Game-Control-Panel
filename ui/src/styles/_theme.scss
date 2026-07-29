@@ -136,6 +136,25 @@ html[data-theme='dark'] {
         label[for='tickSelect'] { color: $d-muted !important; }
     }
 
+    // ---- tables (redesign) ----
+    .table {
+        color: $d-text;
+
+        th, td { border-color: $d-border; }
+        thead th {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .6px;
+            text-transform: uppercase;
+            color: $d-muted;
+            border-top: 0;
+            border-bottom: 1px solid $d-border;
+            white-space: nowrap;
+        }
+        &.table-striped tbody tr:nth-of-type(odd) { background: rgba(255, 255, 255, .02); }
+        tbody tr:hover { background: rgba(87, 166, 255, .08); }
+    }
+
     // ---- surfaces / cards ----
     .card {
         background-color: $d-surface;

@@ -3,3 +3,19 @@
 thead > tr > th {
     cursor: pointer;
 }
+
+// Flag badges (theme-agnostic — colored pills read on light + dark).
+.pl-badge {
+    display: inline-block;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    white-space: nowrap;
+
+    &.ok   { background: rgba(63, 185, 80, .16);  color: #3fb950; }
+    &.prio { background: rgba(87, 166, 255, .16); color: #57a6ff; }
+    &.bad  { background: rgba(241, 107, 121, .16); color: #f16b79; }
+}
+.pl-off { color: #6c757d; }

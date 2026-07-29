@@ -65,13 +65,16 @@
                     {{ player.position }}
                 </td>
                 <td>
-                    {{ player.banned ? 'YES' : 'NO' }}
+                    <span *ngIf="player.banned" class="pl-badge bad">BANNED</span>
+                    <span *ngIf="!player.banned" class="pl-off">—</span>
                 </td>
                 <td>
-                    {{ player.whitelisted ? 'YES' : 'NO' }}
+                    <span *ngIf="player.whitelisted" class="pl-badge ok">WHITELISTED</span>
+                    <span *ngIf="!player.whitelisted" class="pl-off">—</span>
                 </td>
                 <td>
-                    {{ player.prio ? 'YES' : 'NO' }}
+                    <span *ngIf="player.prio" class="pl-badge prio">PRIO</span>
+                    <span *ngIf="!player.prio" class="pl-off">—</span>
                 </td>
             </tr>
         </tbody>
