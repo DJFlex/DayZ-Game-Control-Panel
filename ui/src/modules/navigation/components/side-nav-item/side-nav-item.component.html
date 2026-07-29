@@ -1,4 +1,4 @@
-<a class="nav-link" [routerLink]="sideNavItem.link" (click)="expanded = !expanded" [ngClass]="{active: isActive, collapsed: !expanded}"
+<a class="nav-link" [routerLink]="sideNavItem.link" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="expanded = !expanded" [ngClass]="{collapsed: !expanded}"
     ><div class="sb-nav-link-icon" *ngIf="sideNavItem.icon"><fa-icon [icon]='["fas", sideNavItem.icon]'></fa-icon></div>
     {{sideNavItem.text}}
     <div class="sb-sidenav-collapse-arrow"><fa-icon class="ml-auto" *ngIf="sideNavItem.submenu" [icon]="['fas', 'angle-down']"></fa-icon></div
