@@ -81,6 +81,61 @@ html[data-theme='dark'] {
         color: $d-text;
     }
 
+    // ---- sidebar (redesign) ----
+    .sb-sidenav {
+        .sb-sidenav-menu-heading {
+            padding: 14px 18px 5px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+        .nav-link {
+            color: $d-muted;
+            font-size: 14px;
+            padding: 10px 18px;
+
+            .sb-nav-link-icon { color: #6c757d; }
+            &:hover { color: $d-text; background: transparent; }
+
+            &.active {
+                color: $d-text;
+                font-weight: 600;
+                margin: 0 8px;
+                padding: 10px 10px;
+                border-radius: 8px;
+                background: rgba(0, 123, 255, .15) !important;
+                box-shadow: none;
+                .sb-nav-link-icon { color: #57a6ff; }
+            }
+        }
+    }
+
+    // ---- top bar (redesign) ----
+    .sb-topnav {
+        background: var(--brand-sidebar) !important;
+        border-bottom: 1px solid $d-border;
+
+        .btn-link { color: #57a6ff; }
+        .btn-link:hover { color: #79b8ff; }
+
+        .breadcrumb {
+            background: $d-surface-2;
+            border: 1px solid $d-border;
+            border-radius: 6px;
+            padding: 6px 11px;
+            margin: 0;
+        }
+
+        #tickSelect {
+            background: $d-surface-2;
+            border-color: $d-border;
+            color: $d-text;
+        }
+        label[for='tickSelect'] { color: $d-muted !important; }
+    }
+
     // ---- surfaces / cards ----
     .card {
         background-color: $d-surface;

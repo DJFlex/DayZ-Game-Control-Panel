@@ -2,28 +2,30 @@ import { SideNavItems, SideNavSection } from '../models';
 
 export const sideNavSections: SideNavSection[] = [
     {
-        text: 'CORE',
-        items: ['dashboard'],
+        text: 'MONITOR',
+        items: [
+            'dashboard',
+            'system',
+            'logs',
+            'audit',
+        ],
     },
     {
-        text: 'DETAIL',
+        text: 'MANAGE',
         items: [
-            'system',
             'players',
-            'audit',
-            'logs',
             'maintenance',
-            'settings',
-            'branding',
             'map',
             'maploot',
         ],
     },
     {
-        text: 'Files',
+        text: 'CONFIGURE',
         items: [
+            'settings',
             'types',
             'fileeditor',
+            'branding',
         ],
     },
 ];
