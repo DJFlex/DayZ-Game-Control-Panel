@@ -1,1 +1,5 @@
 @import 'styles/variables.scss';
+
+// Player list first, ID tools below (designer IA change), via flex order.
+.p-flow { display: flex; flex-direction: column; }
+.p-idtools { order: 2; margin-top: 1.5rem; }
