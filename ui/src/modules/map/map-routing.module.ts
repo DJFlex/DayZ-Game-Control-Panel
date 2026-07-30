@@ -6,7 +6,6 @@ import { Routes, RouterModule } from '@angular/router';
 import { MapModule } from './map.module';
 import { MapComponent } from './containers/map/map.component';
 import { SBRouteData } from '../navigation/models';
-import { MapLootComponent } from './containers/map/map-loot.component';
 
 /* Routes */
 // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -30,22 +29,11 @@ export const ROUTES: Routes = [
         } as SBRouteData,
     },
     {
+        // MapLoot is now the Loot/Events layers of the Map page; keep the old
+        // path working so existing bookmarks do not land on a 404.
         path: 'maploot',
-        canActivate: [],
-        component: MapLootComponent,
-        data: {
-            title: 'MapLoot',
-            breadcrumbs: [
-                {
-                    text: 'Dashboard',
-                    link: '/dashboard',
-                },
-                {
-                    text: 'MapLoot',
-                    active: true,
-                },
-            ],
-        } as SBRouteData,
+        redirectTo: '',
+        pathMatch: 'full',
     },
 ];
 

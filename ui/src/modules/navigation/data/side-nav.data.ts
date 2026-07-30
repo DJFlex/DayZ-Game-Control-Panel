@@ -16,7 +16,6 @@ export const sideNavSections: SideNavSection[] = [
             'players',
             'maintenance',
             'map',
-            'maploot',
         ],
     },
     {
@@ -75,11 +74,6 @@ export const sideNavItems: SideNavItems = {
         icon: 'map',
         text: 'Map',
         link: '/dashboard/map',
-    },
-    maploot: {
-        icon: 'map',
-        text: 'MapLoot',
-        link: '/dashboard/map/maploot',
     },
     types: {
         icon: 'wrench',

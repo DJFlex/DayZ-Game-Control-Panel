@@ -1,33 +1,84 @@
 <sb-layout-dashboard>
-    <div class="d-flex btn-group"
-         style="margin-top: -1rem; margin-left: -1rem; margin-right: -1rem; margin-bottom: 0.5rem;"
-    >
-        <label style="margin-bottom: 0; margin-right: 0.5rem; align-self: center;">Search:</label>
-        <input class="form-control"
-               style="border-top-right-radius: 0; border-bottom-right-radius: 0;"
-               (keyup)="$event.key === 'Enter' ? search(searchInput.value) : null"
-               #searchInput
-        >
-        <button class="btn btn-primary"
-                (click)="search(searchInput.value)"
-        >
-            <fa-icon [icon]='["fas", "search"]'></fa-icon>
-        </button>
-        <button class="btn btn-danger"
-                (click)="searchInput.value = ''; search(undefined)"
-        >
-            <fa-icon [icon]='["fas", "trash"]'></fa-icon>
-        </button>
-    </div>
-    <div class="map-container"
-        *ngIf="options"
-        leaflet
-        (leafletMapReady)="onMapReady($event)"
-        (leafletCenterChange)="onCenterChange($event)"
-        (leafletDoubleClick)="onMapDoubleClick($event)"
-        [leafletOptions]="options"
-    ></div>
-    <div style="position: absolute;left: 48%;background: #fff8;z-index: 900;padding: 7px;border-radius: 7px;bottom: 6%;">
-        {{ curCoordinatesX }} | {{ curCoordinatesY }}
+    <div class="map-container mp-wrap">
+
+        <div class="mp-map"
+            *ngIf="options"
+            leaflet
+            (leafletMapReady)="onMapReady($event)"
+            (leafletCenterChange)="onCenterChange($event)"
+            (leafletDoubleClick)="onMapDoubleClick($event)"
+            [leafletOptions]="options"
+        ></div>
+
+        <!-- Floating controls: the map itself fills the pane (designer frame),
+             so everything rides on top of it and only the controls take clicks. -->
+        <div class="mp-top">
+            <div class="mp-search">
+                <fa-icon [icon]='["fas", "search"]'></fa-icon>
+                <input type="text" placeholder="Find player, vehicle, town&hellip;"
+                       (keyup)="$event.key === 'Enter' ? search(searchInput.value) : null"
+                       #searchInput />
+                <button type="button" class="mp-search-clear" title="Clear search"
+                        (click)="searchInput.value = ''; search(undefined)">
+                    <fa-icon [icon]='["fas", "trash"]'></fa-icon>
+                </button>
+            </div>
+
+            <div class="mp-pills">
+                <button type="button" class="mp-pill" *ngFor="let p of pills"
+                        [class.on]="p.on"
+                        [style.border-color]="p.on ? p.colour : null"
+                        [attr.aria-pressed]="p.on"
+                        (click)="togglePill(p)">
+                    <span class="mp-dot" [style.background]="p.on ? p.colour : '#6c757d'"></span>
+                    {{ p.label }}<span class="mp-count" *ngIf="p.on && !p.hideCount"> ({{ markerCount(p) }})</span>
+                </button>
+            </div>
+
+            <div class="mp-zoom">
+                <button type="button" (click)="zoomIn()" title="Zoom in">+</button>
+                <button type="button" (click)="zoomOut()" title="Zoom out">&minus;</button>
+            </div>
+        </div>
+
+        <div class="mp-coords">{{ curCoordinatesX | number:'1.0-0' }} / {{ curCoordinatesY | number:'1.0-0' }}</div>
+
+        <div class="mp-busy" *ngIf="busy">
+            <fa-icon [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>{{ busy }}
+        </div>
+
+        <!-- Only shown once a mission-file layer is actually loaded, so the
+             monitoring view stays clean and Save can never fire on nothing. -->
+        <div class="mp-editbar" *ngIf="editing">
+            <span class="mp-edit-hint" *ngIf="selectedEventName; else pickHint">
+                Adding positions to <b>{{ selectedEventName }}</b> &mdash; double-click the map
+                <button type="button" class="mp-link" (click)="clearSelectedEvent()">stop</button>
+            </span>
+            <ng-template #pickHint>
+                <span class="mp-edit-hint">
+                    Drag a marker to move it, <b>Delete</b> to remove it, double-click an event to add positions
+                </span>
+            </ng-template>
+
+            <label class="mp-chk">
+                <input type="checkbox" [(ngModel)]="withBackup"
+                       [ngModelOptions]="{standalone: true}" [disabled]="submitting" />
+                Back up first
+            </label>
+            <button type="button" class="btn btn-sm btn-success" (click)="onSubmit()" [disabled]="submitting">
+                <fa-icon *ngIf="submitting" [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>
+                Save to server
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" (click)="reloadFiles()" [disabled]="submitting">
+                Reload
+            </button>
+        </div>
+
+        <ngb-alert class="mp-alert" *ngIf="outcomeBadge"
+                   [type]="outcomeBadge.success ? 'success' : 'danger'"
+                   (closed)="outcomeBadge = undefined">
+            {{ outcomeBadge.message }}
+        </ngb-alert>
+
     </div>
 </sb-layout-dashboard>

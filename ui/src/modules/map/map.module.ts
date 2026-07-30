@@ -12,7 +12,6 @@ import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 import { LeafletMarkerClusterModule } from '@asymmetrik/ngx-leaflet-markercluster';
 import { MapComponent } from './containers/map/map.component';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { MapLootComponent } from './containers/map/map-loot.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 
 @NgModule({
@@ -33,11 +32,9 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
     ],
     declarations: [
         MapComponent,
-        MapLootComponent,
     ],
     exports: [
         MapComponent,
-        MapLootComponent,
     ],
 })
 export class MapModule {}
