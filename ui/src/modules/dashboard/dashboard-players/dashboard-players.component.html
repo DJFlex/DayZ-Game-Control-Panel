@@ -1,8 +1,14 @@
 <sb-card>
     <div class="card-header">
         <fa-icon class="mr-1" [icon]='["fas", "table"]'></fa-icon>Players
+        <span class="dp-count">{{ (playerService.total$ | async) || 0 }} online</span>
     </div>
     <div class="card-body">
-        <sb-player-table></sb-player-table>
+        <!-- these inputs used to be left unbound, so this card always drew an
+             empty table regardless of who was actually on the server -->
+        <sb-player-table
+            [players$]="playerService.players$"
+            [total$]="playerService.total$"
+        ></sb-player-table>
     </div>
 </sb-card>

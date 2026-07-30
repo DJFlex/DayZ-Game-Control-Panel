@@ -11,6 +11,10 @@ import { ApiFetcher, AppCommonService } from '../../app-common/services/app-comm
 })
 export class DashboardCardsComponent implements OnInit {
 
+    /** Placeholder tiles rendered while the first report is in flight. Held as a
+     *  field so *ngFor is not handed a fresh array on every change detection. */
+    public readonly skeletonTiles = [0, 1, 2, 3];
+
     public constructor(
         public commonService: AppCommonService,
     ) {}

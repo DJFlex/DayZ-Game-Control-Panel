@@ -6,6 +6,10 @@
         <span class="ml-3" *ngIf="playerService.loading$ | async">Loading...</span>
     </div>
     <span>SteamID, DayZID and character values might only be available when the player is online.</span>
+
+    <ng-container *ngIf="{ pl: ((players$ | async) || []), loading: (playerService.loading$ | async) } as v">
+
+    <ng-container *ngIf="v.pl.length">
     <table class="table table-striped">
         <thead>
             <tr>
@@ -31,7 +35,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let player of players$ | async"
+            <tr *ngFor="let player of v.pl"
                 (click)="playerService.selectPlayer(player.beguid)"
                 [ngStyle]="{ 'background': (playerService.selected$ | async)?.beguid === player.beguid ? '#00009999' : undefined }"
             >
@@ -66,15 +70,15 @@
                 </td>
                 <td>
                     <span *ngIf="player.banned" class="pl-badge bad">BANNED</span>
-                    <span *ngIf="!player.banned" class="pl-off">—</span>
+                    <span *ngIf="!player.banned" class="pl-off">&mdash;</span>
                 </td>
                 <td>
                     <span *ngIf="player.whitelisted" class="pl-badge ok">WHITELISTED</span>
-                    <span *ngIf="!player.whitelisted" class="pl-off">—</span>
+                    <span *ngIf="!player.whitelisted" class="pl-off">&mdash;</span>
                 </td>
                 <td>
                     <span *ngIf="player.prio" class="pl-badge prio">PRIO</span>
-                    <span *ngIf="!player.prio" class="pl-off">—</span>
+                    <span *ngIf="!player.prio" class="pl-off">&mdash;</span>
                 </td>
             </tr>
         </tbody>
@@ -96,4 +100,33 @@
             <option [ngValue]="MAX_ITEMS">All</option>
         </select>
     </div>
+    </ng-container>
+
+    <!-- First load: shimmer rows rather than an empty grid that looks final. -->
+    <div class="pl-skel" *ngIf="!v.pl.length && v.loading">
+        <div class="dz-skel pl-skel-row" *ngFor="let i of skeletonRows"></div>
+    </div>
+
+    <!-- Nothing to show, and we know it: say why and where to go next. -->
+    <div class="pl-empty" *ngIf="!v.pl.length && !v.loading">
+        <div class="pl-empty-ico"><fa-icon [icon]="['fas','user-slash']"></fa-icon></div>
+
+        <ng-container *ngIf="(playerService.state$ | async)?.searchTerm as term; else noPlayers">
+            <div class="pl-empty-title">No players match &ldquo;{{ term }}&rdquo;</div>
+            <div class="pl-empty-hint">Clear the search box to see everyone again.</div>
+        </ng-container>
+
+        <ng-template #noPlayers>
+            <div class="pl-empty-title">No players online</div>
+            <ng-container *ngIf="serverStopped | async; else serverUp">
+                <div class="pl-empty-hint">The server is stopped &mdash; players can join once it&rsquo;s started again.</div>
+                <a class="btn btn-primary btn-sm pl-empty-btn" routerLink="/dashboard/maintenance">Go to Maintenance</a>
+            </ng-container>
+            <ng-template #serverUp>
+                <div class="pl-empty-hint">The server is up and waiting &mdash; nobody has joined yet.</div>
+            </ng-template>
+        </ng-template>
+    </div>
+
+    </ng-container>
 </form>

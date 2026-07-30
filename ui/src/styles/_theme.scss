@@ -68,6 +68,10 @@ $d-input-border: #454d5a;
 html[data-theme='dark'] {
     background-color: $d-bg;
 
+    // Loading-skeleton shimmer stops (base class lives in _global.scss)
+    --dz-skel-base: #{$d-surface-2};
+    --dz-skel-hi: #39404b;
+
     body {
         background-color: $d-bg;
         color: $d-text;

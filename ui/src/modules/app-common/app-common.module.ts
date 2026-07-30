@@ -9,6 +9,7 @@ import { IconsModule } from '../icons/icons.module';
 
 import { CardComponent } from './components/card/card.component';
 import { CardViewDetailsComponent } from './components/card-view-details/card-view-details.component';
+import { StatusBannerComponent } from './components/status-banner/status-banner.component';
 import { DefaultValuePipe } from './pipes/default-value.pipe';
 
 import { HttpClientModule } from '@angular/common/http';
@@ -26,11 +27,13 @@ import { HttpClientModule } from '@angular/common/http';
         DefaultValuePipe,
         CardComponent,
         CardViewDetailsComponent,
+        StatusBannerComponent,
     ],
     exports: [
         DefaultValuePipe,
         CardComponent,
         CardViewDetailsComponent,
+        StatusBannerComponent,
     ],
 })
 export class AppCommonModule {}

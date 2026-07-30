@@ -59,6 +59,7 @@ import {
     faPowerOff,
     faPaperPlane,
     faClock,
+    faUserSlash,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const fontAwesomeSolidIcons = {
@@ -120,4 +121,5 @@ export const fontAwesomeSolidIcons = {
     faPowerOff,
     faPaperPlane,
     faClock,
+    faUserSlash,
 };

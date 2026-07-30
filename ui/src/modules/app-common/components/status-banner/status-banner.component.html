@@ -1,0 +1,33 @@
+<ng-container *ngIf="{ conn: (connection | async), stopped: (serverStopped | async) } as s">
+
+    <!-- Manager unreachable: keep the stale data on screen, say how old it is. -->
+    <div class="dz-banner warn" *ngIf="s.conn === 'offline'">
+        <fa-icon class="dz-banner-ico" [icon]="['fas','sync']"></fa-icon>
+        <div class="dz-banner-txt">
+            <span class="dz-banner-title">Connection lost &mdash; reconnecting&hellip;</span>
+            <span class="dz-banner-sub" *ngIf="(lastSuccessAt | async) as at; else noData">
+                showing data from <span class="dz-mono">{{ at | date:'HH:mm:ss' }}</span>
+            </span>
+            <ng-template #noData>
+                <span class="dz-banner-sub">no data received yet</span>
+            </ng-template>
+        </div>
+        <button type="button" class="dz-banner-btn" (click)="retry()">Retry now</button>
+    </div>
+
+    <!-- Manager fine, DayZ process down. -->
+    <div class="dz-banner bad" *ngIf="s.conn !== 'offline' && s.stopped">
+        <fa-icon class="dz-banner-ico" [icon]="['fas','power-off']"></fa-icon>
+        <div class="dz-banner-txt">
+            <span class="dz-banner-title">Server process is stopped</span>
+            <span class="dz-banner-sub">
+                <ng-container *ngIf="(stoppedSince | async) as since">since
+                    <span class="dz-mono">{{ since | date:'HH:mm:ss' }}</span> &middot;
+                </ng-container>
+                system monitoring still active
+            </span>
+        </div>
+        <a class="dz-banner-btn" routerLink="/dashboard/maintenance">Open Maintenance</a>
+    </div>
+
+</ng-container>

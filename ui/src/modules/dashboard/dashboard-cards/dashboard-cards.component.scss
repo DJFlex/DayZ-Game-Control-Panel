@@ -43,6 +43,9 @@ $d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
     border: 1px solid $d-bd;
     border-radius: 10px;
     padding: 15px 16px 0;
+
+    // stopped server: the tile itself carries the alarm, not just the word
+    &.bad-bd { border-color: rgba(220, 53, 69, .45); }
 }
 .d-tile-top { display: flex; align-items: center; gap: 13px; }
 .d-tile-txt { min-width: 0; }
@@ -81,6 +84,20 @@ $d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
     fa-icon { font-size: 9px; }
     &:hover { color: #79b8ff; }
 }
+
+// ---- first-load placeholders (.dz-skel shimmer lives in _global.scss) -------
+// Sized to the real thing so the tiles do not resize when the data lands. The
+// per-tile width jitter stops the row reading as a progress bar.
+.d-skel-chip  { width: 40px; height: 40px; border-radius: 10px; flex: none; }
+.d-skel-txt   { flex: 1; }
+.d-skel-label { height: 9px; width: 80px; }
+.d-skel-val   { height: 14px; width: 120px; margin-top: 9px; }
+.d-skel-foot  { display: block; height: 10px; width: 84px; }
+.d-skel-time  { display: inline-block; height: 10px; width: 58px; vertical-align: -1px; }
+
+.d-tile:nth-child(2) { .d-skel-label { width: 96px; } .d-skel-val { width: 72px; } }
+.d-tile:nth-child(3) { .d-skel-label { width: 110px; } .d-skel-val { width: 88px; } }
+.d-tile:nth-child(4) { .d-skel-label { width: 92px; } .d-skel-val { width: 64px; } }
 
 @media (max-width: 991px) { .d-tiles { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 519px) { .d-tiles { grid-template-columns: 1fr; } }

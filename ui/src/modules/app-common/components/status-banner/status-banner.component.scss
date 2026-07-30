@@ -1,0 +1,106 @@
+// Degraded-state banners (designer frames 2b / 3b). Dark-first like the rest of
+// the redesign; the tints are alpha over whatever the page background is, so
+// they stay legible in the light theme too.
+
+$b-amber:     #ffc107;
+$b-amber-tx:  #ffd75e;
+$b-amber-sub: #c9bd93;
+$b-red-tx:    #f16b79;
+$b-red-sub:   #c99a9f;
+$b-mono:      'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+:host {
+    display: block;
+}
+
+@keyframes dz-spin {
+    to { transform: rotate(360deg); }
+}
+
+.dz-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+
+    &.warn {
+        background: rgba(255, 193, 7, .08);
+        border: 1px solid rgba(255, 193, 7, .35);
+    }
+    &.bad {
+        background: rgba(220, 53, 69, .08);
+        border: 1px solid rgba(220, 53, 69, .35);
+    }
+}
+
+.dz-banner-ico {
+    flex: none;
+    // fa-icon is inline by default, which would drop the spin transform
+    display: inline-block;
+    font-size: 13px;
+
+    .warn & { color: $b-amber; animation: dz-spin 1.2s linear infinite; }
+    .bad &   { color: $b-red-tx; }
+}
+
+.dz-banner-txt {
+    flex: 1;
+    min-width: 0;
+}
+
+.dz-banner-title {
+    font-size: 13.5px;
+    font-weight: 700;
+
+    .warn & { color: $b-amber-tx; }
+    .bad &   { color: $b-red-tx; }
+}
+
+.dz-banner-sub {
+    margin-left: 8px;
+    font-size: 12.5px;
+
+    .warn & { color: $b-amber-sub; }
+    .bad &   { color: $b-red-sub; }
+}
+
+.dz-mono {
+    font-family: $b-mono;
+}
+
+.dz-banner-btn {
+    flex: none;
+    background: transparent;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+
+    .warn & {
+        color: $b-amber-tx;
+        border: 1px solid rgba(255, 193, 7, .5);
+        &:hover { background: rgba(255, 193, 7, .12); color: $b-amber-tx; text-decoration: none; }
+    }
+    .bad & {
+        color: $b-red-tx;
+        border: 1px solid rgba(220, 53, 69, .5);
+        &:hover { background: rgba(220, 53, 69, .12); color: $b-red-tx; text-decoration: none; }
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    // specificity has to match the .warn nesting above to win
+    .warn .dz-banner-ico { animation: none; }
+}
+
+@media (max-width: 575px) {
+    .dz-banner { align-items: flex-start; flex-wrap: wrap; }
+    .dz-banner-sub { display: block; margin-left: 0; }
+}

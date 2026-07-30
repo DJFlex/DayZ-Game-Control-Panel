@@ -22,6 +22,15 @@ interface Timestamped {
     timestamp: number;
 }
 
+/**
+ * Health of the polling connection to the manager.
+ *  - `connecting`: nothing has come back yet (first load)
+ *  - `online`: last fetch succeeded
+ *  - `offline`: a whole refresh cycle failed — the UI keeps the stale data on
+ *    screen and says how old it is instead of blanking out.
+ */
+export type ConnectionState = 'connecting' | 'online' | 'offline';
+
 export class ApiFetcher<K extends ApiFetcherTypes, T extends Timestamped> {
 
     private data$ = new BehaviorSubject<T[] | null>(null);
@@ -33,6 +42,7 @@ export class ApiFetcher<K extends ApiFetcherTypes, T extends Timestamped> {
         private httpClient: HttpClient,
         private auth: AuthService,
         private dataType: K,
+        private onResult?: (ok: boolean) => void,
     ) {
         if (Object.keys(LogTypeEnum).includes(dataType)) {
             this.apiPath = `/api/logs`;
@@ -86,15 +96,23 @@ export class ApiFetcher<K extends ApiFetcherTypes, T extends Timestamped> {
     public triggerUpdate(since?: number): void {
         this.fetchFromServer(since).subscribe(
             (next) => {
+                // processError() maps a failed request to `null`; a request that
+                // went through always yields an array (empty when nothing new).
                 if (next) {
                     this.data$.next([
                         ...(this.data$.value ?? []),
                         ...next,
                     ]);
                     next.forEach((x) => this.dataInserted$.next(x));
+                    this.onResult?.(true);
+                } else {
+                    this.onResult?.(false);
                 }
             },
-            console.error,
+            (e: any) => {
+                console.error(e);
+                this.onResult?.(false);
+            },
         );
     }
 
@@ -135,6 +153,10 @@ export class AppCommonService {
 
     public readonly SERVER_INFO = new BehaviorSubject<ServerInfo | undefined>(undefined);
 
+    private connection$ = new BehaviorSubject<ConnectionState>('connecting');
+    private lastSuccessAt$ = new BehaviorSubject<number>(0);
+    private failStreak: number = 0;
+
     private timer: Subscription | undefined;
     private lastUpdate$: number = 0;
 
@@ -157,6 +179,7 @@ export class AppCommonService {
                         this.httpClient,
                         this.auth,
                         x,
+                        (ok) => this.reportFetchResult(ok),
                     ),
                 );
             },
@@ -170,6 +193,7 @@ export class AppCommonService {
                         this.httpClient,
                         this.auth,
                         x,
+                        (ok) => this.reportFetchResult(ok),
                     ),
                 );
             },
@@ -184,6 +208,44 @@ export class AppCommonService {
 
     public get lastUpdate(): number {
         return this.lastUpdate$;
+    }
+
+    /**
+     * Connection health for the degraded-state banners. Only flips to `offline`
+     * once a whole refresh cycle failed (one failure per fetcher), so a single
+     * flaky endpoint cannot raise a false alarm.
+     */
+    public get connectionState(): Observable<ConnectionState> {
+        return this.connection$.asObservable();
+    }
+
+    /** When the last successful fetch landed; 0 while nothing has arrived yet. */
+    public get lastSuccessAt(): Observable<number> {
+        return this.lastSuccessAt$.asObservable();
+    }
+
+    public reportFetchResult(ok: boolean): void {
+        if (ok) {
+            this.failStreak = 0;
+            const now = new Date().valueOf();
+            // Second resolution is all the banner shows - do not churn change
+            // detection for every one of the fetchers in a cycle.
+            if ((now - this.lastSuccessAt$.value) >= 1000) {
+                this.lastSuccessAt$.next(now);
+            }
+            if (this.connection$.value !== 'online') {
+                this.connection$.next('online');
+            }
+            return;
+        }
+
+        this.failStreak++;
+        if (
+            this.failStreak >= Math.max(1, this.apiFetchers.size)
+            && this.connection$.value !== 'offline'
+        ) {
+            this.connection$.next('offline');
+        }
     }
 
     public get refreshRate(): number {

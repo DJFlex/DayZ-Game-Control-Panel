@@ -4,70 +4,92 @@
         <div class="d-server">RoZebud Server</div>
         <div class="d-update">
             Last update
-            <span class="d-mono">{{ d.sysw?.timestamp ? (d.sysw?.timestamp | date:'HH:mm:ss') : '—' }}</span>
+            <span class="d-mono" *ngIf="d.sysw?.timestamp; else headSkel">{{ d.sysw?.timestamp | date:'HH:mm:ss' }}</span>
+            <ng-template #headSkel><span class="dz-skel d-skel-time"></span></ng-template>
         </div>
     </div>
 
     <div class="d-tiles">
 
-        <!-- Server state -->
-        <div class="d-tile">
-            <div class="d-tile-top">
-                <div class="d-chip" [ngClass]="serverStateClass(d.sysw?.value?.serverState)">
-                    <fa-icon [icon]="serverOnline(d.sysw?.value?.serverState) ? ['fas','check'] : (serverStatePending(d.sysw?.value?.serverState) ? ['fas','spinner'] : ['fas','power-off'])"></fa-icon>
-                </div>
-                <div class="d-tile-txt">
-                    <div class="d-tile-label">SERVER STATE</div>
-                    <div class="d-tile-val" [ngClass]="serverStateClass(d.sysw?.value?.serverState)">
-                        {{ serverStateLabel(d.sysw?.value?.serverState) }}
+        <!-- d.sysw is narrowed to non-null in here, hence the plain dots -->
+        <ng-container *ngIf="d.sysw; else loadingTiles">
+
+            <!-- Server state -->
+            <div class="d-tile" [class.bad-bd]="serverStateClass(d.sysw.value.serverState) === 'bad'">
+                <div class="d-tile-top">
+                    <div class="d-chip" [ngClass]="serverStateClass(d.sysw.value.serverState)">
+                        <fa-icon [icon]="serverOnline(d.sysw.value.serverState) ? ['fas','check'] : (serverStatePending(d.sysw.value.serverState) ? ['fas','spinner'] : ['fas','power-off'])"></fa-icon>
+                    </div>
+                    <div class="d-tile-txt">
+                        <div class="d-tile-label">SERVER STATE</div>
+                        <div class="d-tile-val" [ngClass]="serverStateClass(d.sysw.value.serverState)">
+                            {{ serverStateLabel(d.sysw.value.serverState) }}
+                        </div>
                     </div>
                 </div>
+                <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
             </div>
-            <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
-        </div>
 
-        <!-- CPU -->
-        <div class="d-tile">
-            <div class="d-tile-top">
-                <div class="d-ring" [style.background]="ring(d.sysw?.value?.system?.cpuTotal)">
-                    <div class="d-ring-in">{{ (d.sysw?.value?.system?.cpuTotal | number:'1.0-0') || 0 }}%</div>
-                </div>
-                <div class="d-tile-txt">
-                    <div class="d-tile-label">SYSTEM CPU</div>
-                    <div class="d-tile-val">{{ cpuLabel(d.sysw?.value?.system?.cpuTotal) }}</div>
-                </div>
-            </div>
-            <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
-        </div>
-
-        <!-- RAM -->
-        <div class="d-tile">
-            <div class="d-tile-top">
-                <div class="d-ring" [style.background]="ring(d.mem)">
-                    <div class="d-ring-in">{{ (d.mem | number:'1.0-0') || 0 }}%</div>
-                </div>
-                <div class="d-tile-txt">
-                    <div class="d-tile-label">SYSTEM RAM</div>
-                    <div class="d-tile-val" *ngIf="d.sysw?.value?.system as sys">
-                        {{ ((sys.mem ?? 0) / 1024) | number:'1.1-1' }} <span class="d-tile-unit">/ {{ ((sys.memTotal ?? 0) / 1024) | number:'1.1-1' }} GB</span>
+            <!-- CPU -->
+            <div class="d-tile">
+                <div class="d-tile-top">
+                    <div class="d-ring" [style.background]="ring(d.sysw.value.system.cpuTotal)">
+                        <div class="d-ring-in">{{ (d.sysw.value.system.cpuTotal | number:'1.0-0') || 0 }}%</div>
                     </div>
-                    <div class="d-tile-val" *ngIf="!d.sysw?.value?.system">—</div>
+                    <div class="d-tile-txt">
+                        <div class="d-tile-label">SYSTEM CPU</div>
+                        <div class="d-tile-val">{{ cpuLabel(d.sysw.value.system.cpuTotal) }}</div>
+                    </div>
                 </div>
+                <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
             </div>
-            <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
-        </div>
 
-        <!-- Players -->
-        <div class="d-tile">
-            <div class="d-tile-top">
-                <div class="d-chip"><fa-icon [icon]="['fas','user']"></fa-icon></div>
-                <div class="d-tile-txt">
-                    <div class="d-tile-label">ONLINE PLAYERS</div>
-                    <div class="d-tile-val">{{ d.pl?.value?.length ?? '—' }}</div>
+            <!-- RAM -->
+            <div class="d-tile">
+                <div class="d-tile-top">
+                    <div class="d-ring" [style.background]="ring(d.mem)">
+                        <div class="d-ring-in">{{ (d.mem | number:'1.0-0') || 0 }}%</div>
+                    </div>
+                    <div class="d-tile-txt">
+                        <div class="d-tile-label">SYSTEM RAM</div>
+                        <div class="d-tile-val" *ngIf="d.sysw.value.system as sys">
+                            {{ (sys.mem / 1024) | number:'1.1-1' }} <span class="d-tile-unit">/ {{ ((sys.memTotal ?? 0) / 1024) | number:'1.1-1' }} GB</span>
+                        </div>
+                        <div class="d-tile-val" *ngIf="!d.sysw.value.system">&mdash;</div>
+                    </div>
                 </div>
+                <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
             </div>
-            <a class="d-foot" routerLink="/dashboard/players">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
-        </div>
+
+            <!-- Players -->
+            <div class="d-tile">
+                <div class="d-tile-top">
+                    <div class="d-chip"><fa-icon [icon]="['fas','user']"></fa-icon></div>
+                    <div class="d-tile-txt">
+                        <div class="d-tile-label">ONLINE PLAYERS</div>
+                        <!-- RCON only reports players while the server runs; the last
+                             stored list would otherwise linger after a shutdown. -->
+                        <div class="d-tile-val">{{ serverOnline(d.sysw.value.serverState) ? (d.pl?.value?.length ?? 0) : 0 }}</div>
+                    </div>
+                </div>
+                <a class="d-foot" routerLink="/dashboard/players">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
+            </div>
+
+        </ng-container>
+
+        <!-- First load: shimmer placeholders rather than dashes for every value. -->
+        <ng-template #loadingTiles>
+            <div class="d-tile" *ngFor="let i of skeletonTiles">
+                <div class="d-tile-top">
+                    <div class="dz-skel d-skel-chip"></div>
+                    <div class="d-tile-txt d-skel-txt">
+                        <div class="dz-skel d-skel-label"></div>
+                        <div class="dz-skel d-skel-val"></div>
+                    </div>
+                </div>
+                <div class="d-foot"><span class="dz-skel d-skel-foot"></span></div>
+            </div>
+        </ng-template>
 
     </div>
 </ng-container>

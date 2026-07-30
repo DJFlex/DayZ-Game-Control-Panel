@@ -5,6 +5,40 @@ body {
   height: 100%;
 }
 
+// ---- Loading skeletons (degraded states) ------------------------------------
+// Shimmering placeholder shown while the first payload is still in flight, so
+// no page has to render "Unknown" or a bare dash. Size it where it is used;
+// the two gradient stops are custom properties so the dark theme can restate
+// them (see _theme.scss).
+
+:root {
+    --dz-skel-base: #e4e7ea;
+    --dz-skel-hi: #f2f4f6;
+}
+
+@keyframes dz-shimmer {
+    0%   { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
+.dz-skel {
+    border-radius: 4px;
+    background: linear-gradient(
+        90deg,
+        var(--dz-skel-base) 25%,
+        var(--dz-skel-hi) 37%,
+        var(--dz-skel-base) 63%
+    );
+    background-size: 400% 100%;
+    animation: dz-shimmer 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dz-skel {
+        animation: none;
+    }
+}
+
 // Set spacing on containers for page symmetry
 
 .container {
