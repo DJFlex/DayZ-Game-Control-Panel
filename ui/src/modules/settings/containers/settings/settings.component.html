@@ -10,13 +10,19 @@
             >
                 {{ outcomeBadge.message }}
             </ngb-alert>
-            <div class="s-nav">
-                <span class="s-nav-label">Jump to</span>
-                <button type="button" class="s-nav-chip" *ngFor="let s of sections" (click)="scrollToSection(s)">{{ s }}</button>
-            </div>
-            <form (ngSubmit)="onSubmit()" #configForm="ngForm">
-                <strong>General</strong>
-                <hr>
+            <div class="s-layout">
+                <div class="s-sidenav">
+                    <input class="s-search" placeholder="Find a section…" name="sectionFilter"
+                           [(ngModel)]="sectionFilter" [ngModelOptions]="{standalone: true}" />
+                    <button type="button" class="s-nav-item" *ngFor="let s of sections"
+                            [hidden]="sectionFilter && !s.toLowerCase().includes(sectionFilter.toLowerCase())"
+                            [class.on]="active === s" (click)="active = s">{{ s }}</button>
+                </div>
+                <div class="s-content">
+                    <form (ngSubmit)="onSubmit()" #configForm="ngForm">
+                        <div class="s-section" [hidden]="active !== 'General'">
+                        <strong>General</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         <div class="form-group">
@@ -49,8 +55,10 @@
                     </div>
                 </div>
 
-                <strong>Admins</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Admins'">
+                        <strong>Admins</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         <pre class="small text-muted">
@@ -108,16 +116,20 @@
                     </div>
                 </div>
 
-                <strong>Web</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Web'">
+                        <strong>Web</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         --- currently only in file ---
                     </div>
                 </div>
 
-                <strong>Discord</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Discord'">
+                        <strong>Discord</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         <div class="form-group">
@@ -175,8 +187,10 @@
                     </div>
                 </div>
 
-                <strong>DayZ</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'DayZ'">
+                        <strong>DayZ</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         <div class="form-group">
@@ -260,8 +274,10 @@
                     </div>
                 </div>
 
-                <strong>Mods</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Mods'">
+                        <strong>Mods</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         <div class="form-group">
@@ -366,8 +382,10 @@
                     </div>
                 </div>
 
-                <strong>DayZ StartFlags</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'DayZ StartFlags'">
+                        <strong>DayZ StartFlags</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col">
                         <div class="form-check">
@@ -434,8 +452,10 @@
                     </div>
                 </div>
 
-                <strong>Backups</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Backups'">
+                        <strong>Backups</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-8">
                         <div class="form-group">
@@ -459,8 +479,10 @@
                     </div>
                 </div>
 
-                <strong>Steam</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Steam'">
+                        <strong>Steam</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-6">
                         <div class="form-group">
@@ -593,32 +615,40 @@
 
                 </div>
 
-                <strong>Events</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Events'">
+                        <strong>Events</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         --- currently only in file ---
                     </div>
                 </div>
 
-                <strong>Hooks</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Hooks'">
+                        <strong>Hooks</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         --- currently only in file ---
                     </div>
                 </div>
 
-                <strong>Metrics</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Metrics'">
+                        <strong>Metrics</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12">
                         --- currently only in file ---
                     </div>
                 </div>
 
-                <strong>Server.cfg</strong>
-                <hr>
+                        </div>
+                        <div class="s-section" [hidden]="active !== 'Server.cfg'">
+                        <strong>Server.cfg</strong>
+                        <hr>
                 <div class="row spaced">
                     <div class="col-md-12" *ngFor="let prop of (serverCfgProps || [])">
                         <div style="display: flex; flex-direction: row; justify-content: space-between;">
@@ -702,11 +732,15 @@
                     </div>
                 </div>
 
-                <div class="s-savebar">
-                    <button type="submit" class="btn btn-success" [disabled]="!configForm.form.valid">Save Changes</button>
-                    <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
-                </div>
-            </form>
+                        </div><!-- /s-section Server.cfg -->
+
+                        <div class="s-savebar">
+                            <button type="submit" class="btn btn-success" [disabled]="!configForm.form.valid">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+                        </div>
+                    </form>
+                </div><!-- /s-content -->
+            </div><!-- /s-layout -->
         </div>
         <div class="card-body" *ngIf="loading">
             <fa-icon [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>

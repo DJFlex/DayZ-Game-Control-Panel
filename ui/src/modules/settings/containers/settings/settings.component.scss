@@ -19,39 +19,48 @@
     }
 }
 
-// ---- section jump-nav (sticky top) ----
-.s-nav {
+// ---- left section nav ----
+.s-layout { display: flex; gap: 18px; align-items: flex-start; }
+.s-sidenav {
     position: sticky;
-    top: 0;
-    z-index: 5;
+    top: 8px;
+    width: 190px;
+    flex: none;
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
-    padding: 10px 0;
-    margin-bottom: 10px;
-    background: #fff;
-    border-bottom: 1px solid rgba(0, 0, 0, .1);
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px;
+    border-radius: 10px;
+    background: #f6f7f8;
+    border: 1px solid rgba(0, 0, 0, .1);
 }
-.s-nav-label {
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: .5px;
-    color: #6c757d;
-    margin-right: 4px;
-}
-.s-nav-chip {
-    background: rgba(127, 127, 127, .12);
-    border: 1px solid rgba(127, 127, 127, .28);
-    border-radius: 99px;
-    padding: 4px 11px;
+.s-search {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 6px;
+    padding: 7px 10px;
     font-size: 12.5px;
+    background: #fff;
+    color: inherit;
+    outline: none;
+}
+.s-nav-item {
+    text-align: left;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    padding: 9px 12px;
+    font-size: 13px;
     color: inherit;
     cursor: pointer;
     font-family: inherit;
 
-    &:hover { border-color: #57a6ff; color: #57a6ff; }
+    &:hover { background: rgba(127, 127, 127, .12); }
+    &.on { background: rgba(0, 123, 255, .15); font-weight: 600; }
 }
+.s-content { flex: 1; min-width: 0; }
 
 // ---- sticky save bar (bottom) ----
 .s-savebar {
@@ -68,16 +77,22 @@
 }
 
 // ---- section headers ----
-form > strong {
+.s-section > strong {
     display: block;
     font-size: 15px;
     font-weight: 700;
-    margin-top: 10px;
-    padding-top: 6px;
+    margin-top: 4px;
+    padding-top: 4px;
 }
 
-// Dark theme: match the card surface so the sticky bars aren't white blocks.
 :host-context(html[data-theme='dark']) {
-    .s-nav { background: #262b33; border-bottom-color: #3a414d; }
+    .s-sidenav { background: #262b33; border-color: #3a414d; }
+    .s-search { background: #2d333d; border-color: #3a414d; color: #e6e8eb; }
+    .s-nav-item.on { color: #e6e8eb; }
     .s-savebar { background: #262b33; border-top-color: #3a414d; }
+}
+
+@media (max-width: 767px) {
+    .s-layout { flex-direction: column; }
+    .s-sidenav { position: static; width: 100%; flex-direction: row; flex-wrap: wrap; }
 }
