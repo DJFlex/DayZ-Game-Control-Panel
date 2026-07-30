@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Config, DiscordChannelType } from '../../../app-common/models';
+import { Config, DiscordChannelType, WorkshopMod } from '../../../app-common/models';
 import { AppCommonService } from '../../../app-common/services/app-common.service';
 import * as commentJson from 'comment-json';
 
@@ -45,6 +45,36 @@ const START_NUMBERS: { key: StartNumberKey; label: string; desc: string }[] = [
     { key: 'cpuCount', label: 'cpuCount', desc: 'CPU cores the server may use' },
 ];
 
+/**
+ * Config keys reachable in each section, so the search box can find a setting
+ * and not just a section name. Harvested from this component's own template -
+ * if you add a field, add its key here. Server.cfg is filled in at runtime from
+ * serverCfgProps, which is itself derived from the schema.
+ */
+const SECTION_KEYS: { [section: string]: string[] } = {
+    General: ['instanceId', 'loglevel'],
+    Admins: ['admins', 'userId', 'userLevel', 'password'],
+    Discord: ['discordBotToken', 'discordChannels'],
+    DayZ: [
+        'rconPassword', 'serverPath', 'serverPort', 'serverExe',
+        'experimentalServer', 'battleyePath', 'profilesPath', 'serverCfgPath',
+    ],
+    Mods: ['steamWsMods', 'localMods', 'serverMods', 'workshopId'],
+    'DayZ StartFlags': [
+        'doLogs', 'adminLog', 'netLog', 'freezeCheck', 'filePatching',
+        'scriptDebug', 'scrAllowFileWrite', 'limitFPS', 'cpuCount',
+    ],
+    Backups: ['backupPath', 'backupMaxAge'],
+    Steam: [
+        'steamUsername', 'steamPassword', 'steamCmdPath', 'steamWorkshopPath',
+        'steamMetaPath', 'updateServerOnStartup', 'updateServerBeforeServerStart',
+        'validateServerAfterUpdate', 'updateModsOnStartup', 'updateModsBeforeServerStart',
+        'validateModsAfterUpdate', 'linkModDirs', 'copyModDeepCompare',
+        'updateModsMaxBatchSize', 'updateModsMaxBatchFileSize',
+    ],
+    'Server.cfg': [],
+};
+
 /** Keys whose camelCase name does not read well on its own. */
 const KEY_LABELS: { [key: string]: string } = {
     instanceId: 'Instance ID',
@@ -84,15 +114,28 @@ export class SettingsComponent implements OnInit {
 
     // Left-nav sections; only the active one is shown.
     public readonly sections = [
-        'General', 'Admins', 'Web', 'Discord', 'DayZ', 'Mods', 'DayZ StartFlags',
-        'Backups', 'Steam', 'Events', 'Hooks', 'Metrics', 'Server.cfg',
+        'General', 'Admins', 'Discord', 'DayZ', 'Mods', 'DayZ StartFlags',
+        'Backups', 'Steam', 'Server.cfg',
     ];
 
+    /**
+     * Sections the manager only reads from the config file - they had nav items
+     * that rendered the words "currently only in file" and nothing else. Now
+     * named once under the nav, pointing at the File Editor.
+     */
+    public readonly fileOnlySections = ['Web', 'Events', 'Hooks', 'Metrics'];
+    public readonly fileOnlyLabel = this.fileOnlySections.join(' · ');
+    public readonly fileEditorLink = '/dashboard/files/editor';
+
     public active = 'General';
-    public sectionFilter = '';
+    public settingFilter = '';
 
     public readonly startFlags = START_FLAGS;
     public readonly startNumbers = START_NUMBERS;
+
+    /** Mods sub-tab. */
+    public modTab: 'workshop' | 'local' | 'server' = 'workshop';
+    public modIdInput = '';
 
     /**
      * The config exactly as the server last gave it to us, so the save bar can
@@ -106,13 +149,160 @@ export class SettingsComponent implements OnInit {
     private pristineConfig?: { [key: string]: any };
 
     public get filteredSections(): string[] {
-        const f = this.sectionFilter.trim().toLowerCase();
-        return f ? this.sections.filter((s) => s.toLowerCase().includes(f)) : this.sections.slice();
+        const f = this.settingFilter.trim().toLowerCase();
+        if (!f) {
+            return this.sections.slice();
+        }
+        return this.sections.filter(
+            (s) => s.toLowerCase().includes(f) || this.matchingKeys(s).length > 0,
+        );
+    }
+
+    /** Fields in a section matching the filter, so the nav can name the hit. */
+    public matchingKeys(section: string): string[] {
+        const f = this.settingFilter.trim().toLowerCase();
+        if (!f) {
+            return [];
+        }
+        return this.keysFor(section)
+            .filter((k) => k.toLowerCase().includes(f) || this.labelFor(k).toLowerCase().includes(f))
+            .slice(0, 3);
+    }
+
+    private keysFor(section: string): string[] {
+        if (section === 'Server.cfg') {
+            return (this.serverCfgProps || []).map((p) => p.name);
+        }
+        return SECTION_KEYS[section] ?? [];
+    }
+
+    public get noSearchHits(): boolean {
+        return !!this.settingFilter.trim() && this.filteredSections.length === 0;
     }
 
     public constructor(
         public appCommon: AppCommonService,
     ) {}
+
+    // ---- workshop mods ------------------------------------------------------
+    //
+    // A steamWsMods entry is either a bare id string ("123456") or a descriptor
+    // ({ workshopId, name?, disabled? }) - the schema allows both and configs in
+    // the wild use both, so every accessor below copes with either and only
+    // promotes a string to a descriptor when it has to store something extra.
+
+    public modId(mod: WorkshopMod | string): string {
+        return typeof mod === 'string' ? mod : (mod?.workshopId ?? '');
+    }
+
+    public modName(mod: WorkshopMod | string): string {
+        return typeof mod === 'string' ? '' : (mod?.name ?? '');
+    }
+
+    public modEnabled(mod: WorkshopMod | string): boolean {
+        return typeof mod === 'string' ? true : !mod?.disabled;
+    }
+
+    /** Promote entry `idx` to a descriptor so extra fields can be stored. */
+    private modAsDescriptor(idx: number): WorkshopMod {
+        const current = this.config.steamWsMods[idx];
+        if (typeof current === 'string') {
+            const promoted: WorkshopMod = { workshopId: current };
+            this.config.steamWsMods[idx] = promoted;
+            return promoted;
+        }
+        return current;
+    }
+
+    public setModId(idx: number, value: string): void {
+        const current = this.config.steamWsMods[idx];
+        if (typeof current === 'string') {
+            // keep the plain-string shape when that is all it ever was
+            this.config.steamWsMods[idx] = value;
+            return;
+        }
+        current.workshopId = value;
+    }
+
+    public setModName(idx: number, value: string): void {
+        const descriptor = this.modAsDescriptor(idx);
+        if (value) {
+            descriptor.name = value;
+        } else {
+            delete descriptor.name;
+        }
+    }
+
+    public setModEnabled(idx: number, enabled: boolean): void {
+        if (enabled) {
+            const current = this.config.steamWsMods[idx];
+            if (typeof current !== 'string') {
+                delete current.disabled;
+            }
+            return;
+        }
+        this.modAsDescriptor(idx).disabled = true;
+    }
+
+    public removeMod(idx: number): void {
+        this.config.steamWsMods.splice(idx, 1);
+    }
+
+    /**
+     * These lists hold primitives, so the default identity tracking treats an
+     * edited entry as a brand new one and rebuilds the row - which steals focus
+     * after every keystroke. Track by position instead.
+     */
+    public trackByIndex(index: number): number {
+        return index;
+    }
+
+    public addLocalMod(): void {
+        if (!this.config.localMods) {
+            this.config.localMods = [];
+        }
+        this.config.localMods.push('');
+    }
+
+    public addServerMod(): void {
+        if (!this.config.serverMods) {
+            this.config.serverMods = [];
+        }
+        this.config.serverMods.push('');
+    }
+
+    /** Accepts a bare workshop id or a full Steam Workshop URL. */
+    public addWorkshopMod(raw: string): void {
+        const id = this.parseWorkshopId(raw);
+        if (!id) {
+            this.outcomeBadge = {
+                success: false,
+                message: 'Enter a numeric Workshop ID, or paste a Steam Workshop URL',
+            };
+            return;
+        }
+        if (!this.config.steamWsMods) {
+            this.config.steamWsMods = [];
+        }
+        if (this.config.steamWsMods.some((m) => this.modId(m) === id)) {
+            this.outcomeBadge = {
+                success: false,
+                message: `Workshop ID ${id} is already in the list`,
+            };
+            return;
+        }
+        this.config.steamWsMods.push({ workshopId: id });
+        this.modIdInput = '';
+        this.outcomeBadge = undefined;
+    }
+
+    private parseWorkshopId(raw: string): string | undefined {
+        const value = (raw || '').trim();
+        if (/^\d+$/.test(value)) {
+            return value;
+        }
+        return /[?&]id=(\d+)/.exec(value)?.[1];
+    }
 
     // ---- unsaved-change tracking -------------------------------------------
 

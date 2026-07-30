@@ -12,10 +12,27 @@
             </ngb-alert>
             <div class="s-layout">
                 <div class="s-sidenav">
-                    <input class="s-search" placeholder="Find a section…" name="sectionFilter"
-                           [(ngModel)]="sectionFilter" [ngModelOptions]="{standalone: true}" />
+                    <input class="s-search" placeholder="Find a setting&hellip;" name="settingFilter"
+                           [(ngModel)]="settingFilter" [ngModelOptions]="{standalone: true}" />
+
+                    <!-- the filter matches field names too, so name the hit -->
                     <div class="s-nav-item" *ngFor="let s of filteredSections"
-                         [class.on]="active === s" (click)="active = s">{{ s }}</div>
+                         [class.on]="active === s" (click)="active = s">
+                        {{ s }}
+                        <span class="s-nav-hits" *ngIf="matchingKeys(s).length">
+                            <span class="s-nav-hit" *ngFor="let k of matchingKeys(s)">{{ labelFor(k) }}</span>
+                        </span>
+                    </div>
+
+                    <div class="s-nav-none" *ngIf="noSearchHits">No setting matches that.</div>
+
+                    <!-- Web / Events / Hooks / Metrics used to be nav items whose
+                         whole content was the words "currently only in file". -->
+                    <div class="s-nav-sep"></div>
+                    <div class="s-nav-fileonly">
+                        File-only: {{ fileOnlyLabel }}
+                        <a [routerLink]="fileEditorLink">Edit in File Editor</a>
+                    </div>
                 </div>
                 <div class="s-content">
                     <form (ngSubmit)="onSubmit()" #configForm="ngForm">
@@ -116,16 +133,8 @@
                 </div>
 
                         </div>
-                        <div class="s-section" [hidden]="active !== 'Web'">
-                        <strong>Web</strong>
-                        <hr>
-                <div class="row spaced">
-                    <div class="col-md-12">
-                        --- currently only in file ---
-                    </div>
-                </div>
-
-                        </div>
+                        <!-- Web section removed: consolidated into the File-only
+                             note under the nav (designer IA change). -->
                         <div class="s-section" [hidden]="active !== 'Discord'">
                         <strong>Discord</strong>
                         <hr>
@@ -277,109 +286,111 @@
                         <div class="s-section" [hidden]="active !== 'Mods'">
                         <strong>Mods</strong>
                         <hr>
-                <div class="row spaced">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Steam WS Mods (Mod IDs)</label>
-                            <pre class="small text-muted">
-                                {{ schema.properties.steamWsMods.description }}
-                            </pre>
-                            <div class="row" style="margin-bottom: 15px;" *ngFor="let mod of config.steamWsMods; let idx = index">
-                                <div class="col-md-11" *ngIf="config.steamWsMods[idx]['includes']">
-                                    <input  type="text"
-                                            class="form-control"
-                                            [(ngModel)]="config.steamWsMods[idx]"
-                                            [ngModelOptions]="{standalone: true}"
-                                    >
-                                </div>
-                                <div class="col-md-11" *ngIf="!config.steamWsMods[idx]['includes']">
-                                    <div class="prefixed-input">
-                                        <label>Name</label>
-                                        <input  type="text"
-                                                class="form-control"
-                                                [(ngModel)]="config.steamWsMods[idx]['name']"
-                                                [ngModelOptions]="{standalone: true}"
-                                        >
-                                    </div>
-                                    <div class="prefixed-input">
-                                        <label>WorkshopId</label>
-                                        <input  type="text"
-                                                class="form-control"
-                                                [(ngModel)]="config.steamWsMods[idx]['workshopId']"
-                                                [ngModelOptions]="{standalone: true}"
-                                        >
-                                    </div>
-                                    <div class="prefixed-input">
-                                        <label>Disabled?</label>
-                                        <input  type="checkbox"
-                                                class="form-control"
-                                                [(ngModel)]="config.steamWsMods[idx]['disabled']"
-                                                [ngModelOptions]="{standalone: true}"
-                                        >
-                                    </div>
-                                </div>
-                                <div class="col-md-1">
-                                    <button class="btn btn-danger form-control" type="button" (click)="config.steamWsMods.splice(idx, 1)">
-                                        <fa-icon class="mr-1" [icon]='["fas", "trash"]'></fa-icon>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn form-control" (click)="config.steamWsMods.push({name: '', workshopId: ''})">
-                            <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Entry
-                        </button>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Local Mods (Paths)</label>
-                            <pre class="small text-muted">
-                                {{ schema.properties.localMods.description }}
-                            </pre>
-                            <div class="row" *ngFor="let mod of config.localMods; let idx = index">
-                                <div class="col-md-11">
-                                    <input  type="text"
-                                            class="form-control"
-                                            [(ngModel)]="config.localMods[idx]"
-                                            [ngModelOptions]="{standalone: true}"
-                                    >
-                                </div>
-                                <div class="col-md-1">
-                                    <button class="btn btn-danger form-control" type="button" (click)="config.localMods.splice(idx, 1)">
-                                        <fa-icon class="mr-1" [icon]='["fas", "trash"]'></fa-icon>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn form-control" (click)="config.localMods.push('')">
-                            <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Entry
-                        </button>
-                    </div>
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label>Server Mods (Paths)</label>
-                            <pre class="small text-muted">
-                                {{ schema.properties.serverMods.description }}
-                            </pre>
-                            <div class="row" *ngFor="let mod of config.serverMods; let idx = index">
-                                <div class="col-md-11">
-                                    <input  type="text"
-                                            class="form-control"
-                                            [(ngModel)]="config.serverMods[idx]"
-                                            [ngModelOptions]="{standalone: true}"
-                                    >
-                                </div>
-                                <div class="col-md-1">
-                                    <button class="btn btn-danger form-control" type="button" (click)="config.serverMods.splice(idx, 1)">
-                                        <fa-icon class="mr-1" [icon]='["fas", "trash"]'></fa-icon>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn form-control" (click)="config.serverMods.push('')">
-                            <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Entry
+
+                <!-- Three lists used to stack in one scroll; tabs with counts
+                     (designer frame) plus add-by-ID so a workshop mod can be
+                     added without hand-typing a descriptor. -->
+                <div class="s-modtabs">
+                    <button type="button" class="s-modtab" [class.on]="modTab === 'workshop'"
+                            (click)="modTab = 'workshop'">
+                        Workshop Mods <span class="s-modcount">{{ (config.steamWsMods || []).length }}</span>
+                    </button>
+                    <button type="button" class="s-modtab" [class.on]="modTab === 'local'"
+                            (click)="modTab = 'local'">
+                        Local Paths <span class="s-modcount">{{ (config.localMods || []).length }}</span>
+                    </button>
+                    <button type="button" class="s-modtab" [class.on]="modTab === 'server'"
+                            (click)="modTab = 'server'">
+                        Server Mods <span class="s-modcount">{{ (config.serverMods || []).length }}</span>
+                    </button>
+
+                    <div class="s-modadd" *ngIf="modTab === 'workshop'">
+                        <input type="text" class="s-input" placeholder="Workshop ID or URL&hellip;"
+                               name="modIdInput" [(ngModel)]="modIdInput"
+                               (keyup)="$event.key === 'Enter' ? addWorkshopMod(modIdInput) : null" />
+                        <button type="button" class="btn btn-sm btn-secondary" (click)="addWorkshopMod(modIdInput)">
+                            <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Mod
                         </button>
                     </div>
                 </div>
+
+                <!-- Workshop -->
+                <div class="s-modlist" *ngIf="modTab === 'workshop'">
+                    <pre class="small text-muted">{{ schema.properties.steamWsMods.description }}</pre>
+
+                    <div class="s-modrow" *ngFor="let mod of config.steamWsMods; let idx = index; trackBy: trackByIndex"
+                         [class.off]="!modEnabled(mod)">
+                        <button type="button" class="s-switch" [class.on]="modEnabled(mod)"
+                                (click)="setModEnabled(idx, !modEnabled(mod))"
+                                [attr.aria-pressed]="modEnabled(mod)"
+                                [title]="modEnabled(mod) ? 'Loaded by the server' : 'Kept in the list but not loaded'">
+                            <span class="s-switch-track"><span class="s-switch-knob"></span></span>
+                        </button>
+
+                        <input type="text" class="s-input s-modname" placeholder="Name (optional)"
+                               [ngModel]="modName(mod)" (ngModelChange)="setModName(idx, $event)"
+                               [ngModelOptions]="{standalone: true}" />
+
+                        <input type="text" class="s-input s-modid" placeholder="Workshop ID"
+                               [ngModel]="modId(mod)" (ngModelChange)="setModId(idx, $event)"
+                               [ngModelOptions]="{standalone: true}" />
+
+                        <span class="s-modoff" *ngIf="!modEnabled(mod)">DISABLED</span>
+
+                        <button type="button" class="s-modkill" (click)="removeMod(idx)" title="Remove">
+                            <fa-icon [icon]='["fas", "trash"]'></fa-icon>
+                        </button>
+                    </div>
+
+                    <div class="s-modempty" *ngIf="!(config.steamWsMods || []).length">
+                        No workshop mods. Paste a Workshop ID or URL above to add one.
+                    </div>
+
+                    <div class="s-modnote">
+                        <fa-icon [icon]='["fas", "info"]'></fa-icon>
+                        Saved changes take effect after <b>Update Mods</b> and a restart &mdash;
+                        <a routerLink="/dashboard/maintenance">open Maintenance</a>
+                    </div>
+                </div>
+
+                <!-- Local paths -->
+                <div class="s-modlist" *ngIf="modTab === 'local'">
+                    <pre class="small text-muted">{{ schema.properties.localMods.description }}</pre>
+
+                    <div class="s-modrow" *ngFor="let mod of config.localMods; let idx = index; trackBy: trackByIndex">
+                        <input type="text" class="s-input s-modpath" placeholder="@MyAwesomeMod"
+                               [(ngModel)]="config.localMods[idx]" [ngModelOptions]="{standalone: true}" />
+                        <button type="button" class="s-modkill" (click)="config.localMods.splice(idx, 1)" title="Remove">
+                            <fa-icon [icon]='["fas", "trash"]'></fa-icon>
+                        </button>
+                    </div>
+
+                    <div class="s-modempty" *ngIf="!(config.localMods || []).length">No local mods.</div>
+
+                    <button type="button" class="btn btn-sm btn-secondary" (click)="addLocalMod()">
+                        <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Path
+                    </button>
+                </div>
+
+                <!-- Server mods -->
+                <div class="s-modlist" *ngIf="modTab === 'server'">
+                    <pre class="small text-muted">{{ schema.properties.serverMods.description }}</pre>
+
+                    <div class="s-modrow" *ngFor="let mod of config.serverMods; let idx = index; trackBy: trackByIndex">
+                        <input type="text" class="s-input s-modpath" placeholder="@MyServerMod"
+                               [(ngModel)]="config.serverMods[idx]" [ngModelOptions]="{standalone: true}" />
+                        <button type="button" class="s-modkill" (click)="config.serverMods.splice(idx, 1)" title="Remove">
+                            <fa-icon [icon]='["fas", "trash"]'></fa-icon>
+                        </button>
+                    </div>
+
+                    <div class="s-modempty" *ngIf="!(config.serverMods || []).length">No server mods.</div>
+
+                    <button type="button" class="btn btn-sm btn-secondary" (click)="addServerMod()">
+                        <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Path
+                    </button>
+                </div>
+
 
                         </div>
                         <div class="s-section" [hidden]="active !== 'DayZ StartFlags'">
@@ -570,36 +581,8 @@
                 </div>
 
                         </div>
-                        <div class="s-section" [hidden]="active !== 'Events'">
-                        <strong>Events</strong>
-                        <hr>
-                <div class="row spaced">
-                    <div class="col-md-12">
-                        --- currently only in file ---
-                    </div>
-                </div>
-
-                        </div>
-                        <div class="s-section" [hidden]="active !== 'Hooks'">
-                        <strong>Hooks</strong>
-                        <hr>
-                <div class="row spaced">
-                    <div class="col-md-12">
-                        --- currently only in file ---
-                    </div>
-                </div>
-
-                        </div>
-                        <div class="s-section" [hidden]="active !== 'Metrics'">
-                        <strong>Metrics</strong>
-                        <hr>
-                <div class="row spaced">
-                    <div class="col-md-12">
-                        --- currently only in file ---
-                    </div>
-                </div>
-
-                        </div>
+                        <!-- Events / Hooks / Metrics sections removed: consolidated
+                             into the File-only note under the nav. -->
                         <div class="s-section" [hidden]="active !== 'Server.cfg'">
                         <strong>Server.cfg</strong>
                         <hr>
