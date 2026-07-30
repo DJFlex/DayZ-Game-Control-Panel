@@ -290,6 +290,12 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
 
     public async restartServer(force?: boolean): Promise<void> {
+        if (force) {
+            // eslint-disable-next-line no-alert, no-undef
+            if (!confirm('Force-restart the server NOW? Players are dropped with no warning.')) {
+                return;
+            }
+        }
         const success = await this.maintenance.restartServer(force);
         if (success) {
             this.outcomeBadge = {
@@ -305,6 +311,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
 
     public async kickAll(): Promise<void> {
+        // eslint-disable-next-line no-alert, no-undef
+        if (!confirm('Kick ALL players from the server now?')) {
+            return;
+        }
         const success = await this.maintenance.kickAll();
         if (success) {
             this.outcomeBadge = {
@@ -320,6 +330,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
 
     public async shutdown(): Promise<void> {
+        // eslint-disable-next-line no-alert, no-undef
+        if (!confirm('Shut the server down now? All players are disconnected.')) {
+            return;
+        }
         const success = await this.maintenance.shutdown();
         if (success) {
             this.outcomeBadge = {
