@@ -648,7 +648,7 @@
                         <div class="s-section" [hidden]="active !== 'Server.cfg'">
                         <strong>Server.cfg</strong>
                         <hr>
-                <div class="row spaced">
+                <div class="row spaced" *ngIf="config.serverCfg; else cfgInFile">
                     <div class="col-md-12" *ngFor="let prop of (serverCfgProps || [])">
                         <div style="display: flex; flex-direction: row; justify-content: space-between;">
                             <div class="form-group">
@@ -701,6 +701,13 @@
                         </div>
                     </div>
                 </div>
+                <ng-template #cfgInFile>
+                    <div class="row spaced">
+                        <div class="col-md-12 text-muted">
+                            These server.cfg values are managed directly in the file on this server, so they aren't editable here. Use the File Editor to change them.
+                        </div>
+                    </div>
+                </ng-template>
 
                 <div class="row" style="justify-content: space-between;">
                     <div class="col-md-9">
