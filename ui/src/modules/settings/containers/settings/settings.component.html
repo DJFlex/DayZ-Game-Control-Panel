@@ -384,70 +384,25 @@
                         </div>
                         <div class="s-section" [hidden]="active !== 'DayZ StartFlags'">
                         <strong>DayZ StartFlags</strong>
+                        <span class="s-sub">passed to the server executable on launch</span>
                         <hr>
-                <div class="row spaced">
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="doLogs" [(ngModel)]="config.doLogs"
-                            name="doLogs">
-                            <label class="form-check-label" for="doLogs">doLogs</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="adminLog" [(ngModel)]="config.adminLog"
-                            name="adminLog">
-                            <label class="form-check-label" for="adminLog">adminLog</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="netLog" [(ngModel)]="config.netLog"
-                            name="netLog">
-                            <label class="form-check-label" for="netLog">netLog</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="freezeCheck" [(ngModel)]="config.freezeCheck"
-                            name="freezeCheck">
-                            <label class="form-check-label" for="freezeCheck">freezeCheck</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="filePatching" [(ngModel)]="config.filePatching"
-                            name="filePatching">
-                            <label class="form-check-label" for="filePatching">filePatching</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="scriptDebug" [(ngModel)]="config.scriptDebug"
-                            name="scriptDebug">
-                            <label class="form-check-label" for="scriptDebug">scriptDebug</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="scrAllowFileWrite" [(ngModel)]="config.scrAllowFileWrite"
-                            name="scrAllowFileWrite">
-                            <label class="form-check-label" for="scrAllowFileWrite">scrAllowFileWrite</label>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="limitFPS">limitFPS</label>
-                            <input type="number" class="form-control" id="limitFPS" [(ngModel)]="config.limitFPS"
-                            name="limitFPS">
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="form-group">
-                            <label for="cpuCount">cpuCount</label>
-                            <input type="number" class="form-control" id="cpuCount" [(ngModel)]="config.cpuCount"
-                            name="cpuCount">
-                        </div>
+                <!-- Toggle cards (designer frame): each flag says what it does, so you
+                     do not have to already know what freezeCheck means. -->
+                <div class="s-flags">
+                    <label class="s-flag" *ngFor="let f of startFlags" [class.on]="config[f.key]">
+                        <span class="s-flag-top">
+                            <input type="checkbox" [(ngModel)]="config[f.key]" [name]="f.key">
+                            <span class="s-flag-name">{{ f.key }}</span>
+                        </span>
+                        <span class="s-flag-desc">{{ f.desc }}</span>
+                    </label>
+                </div>
+                <div class="s-flags s-flags-num">
+                    <div class="s-flag" *ngFor="let n of startNumbers">
+                        <span class="s-flag-name">{{ n.label }}</span>
+                        <input type="number" class="form-control s-flag-input"
+                               [(ngModel)]="config[n.key]" [name]="n.key">
+                        <span class="s-flag-desc">{{ n.desc }}</span>
                     </div>
                 </div>
 
@@ -729,20 +684,26 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div style="display: flex; flex-direction: row; justify-content: space-between;">
-                            <button type="submit" class="btn btn-success"
-                                [disabled]="!configForm.form.valid">Submit</button>
-                            <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
-                        </div>
-                    </div>
+                    <!-- Submit/Reset used to sit here too, so this section showed two
+                         sets of save buttons; the sticky bar below covers every section. -->
                 </div>
 
                         </div><!-- /s-section Server.cfg -->
 
-                        <div class="s-savebar">
-                            <button type="submit" class="btn btn-success" [disabled]="!configForm.form.valid">Save Changes</button>
-                            <button type="button" class="btn btn-secondary" (click)="reset()">Reset</button>
+                        <!-- one call to changeLabels per change-detection pass -->
+                        <div class="s-savebar" *ngIf="{ ch: changeLabels } as v">
+                            <span class="s-dirty" *ngIf="v.ch.length; else noChanges">
+                                <span class="s-dirty-dot"></span>
+                                <span class="s-dirty-n">{{ v.ch.length }} unsaved {{ v.ch.length === 1 ? 'change' : 'changes' }}</span>
+                                <span class="s-dirty-list">&mdash; {{ summarise(v.ch) }}</span>
+                            </span>
+                            <ng-template #noChanges>
+                                <span class="s-clean">No unsaved changes</span>
+                            </ng-template>
+                            <button type="submit" class="btn btn-success"
+                                    [disabled]="!configForm.form.valid || !v.ch.length">Save Changes</button>
+                            <button type="button" class="btn btn-secondary"
+                                    (click)="reset()" [disabled]="!v.ch.length">Discard</button>
                         </div>
                     </form>
                 </div><!-- /s-content -->

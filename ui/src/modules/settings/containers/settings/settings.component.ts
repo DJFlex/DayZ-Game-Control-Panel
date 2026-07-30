@@ -16,6 +16,53 @@ interface Property {
     custom?: boolean;
 }
 
+/**
+ * Boolean startup flags, as a literal union so the template can index Config
+ * with it under strictTemplates.
+ */
+type StartFlagKey =
+    'doLogs' | 'adminLog' | 'netLog' | 'freezeCheck'
+    | 'filePatching' | 'scriptDebug' | 'scrAllowFileWrite';
+
+type StartNumberKey = 'limitFPS' | 'cpuCount';
+
+/**
+ * The schema's descriptions for these are just "Server Startup Param doLogs",
+ * so the wording here is written for the panel (designer's Startup Flags card).
+ */
+const START_FLAGS: { key: StartFlagKey; desc: string }[] = [
+    { key: 'doLogs', desc: 'Write server log files (.RPT)' },
+    { key: 'adminLog', desc: 'Log admin actions to the ADM log' },
+    { key: 'netLog', desc: 'Log network traffic' },
+    { key: 'freezeCheck', desc: 'Detect and report server freezes' },
+    { key: 'filePatching', desc: 'Load unpacked mod files instead of PBOs' },
+    { key: 'scriptDebug', desc: 'Print script debug messages' },
+    { key: 'scrAllowFileWrite', desc: 'Let scripts write files to disk' },
+];
+
+const START_NUMBERS: { key: StartNumberKey; label: string; desc: string }[] = [
+    { key: 'limitFPS', label: 'limitFPS', desc: 'Cap the server frame rate' },
+    { key: 'cpuCount', label: 'cpuCount', desc: 'CPU cores the server may use' },
+];
+
+/** Keys whose camelCase name does not read well on its own. */
+const KEY_LABELS: { [key: string]: string } = {
+    instanceId: 'Instance ID',
+    loglevel: 'Log Level',
+    steamWsMods: 'Workshop Mods',
+    localMods: 'Local Mods',
+    serverMods: 'Server Mods',
+    serverCfg: 'Server.cfg',
+    discordChannels: 'Discord Channels',
+    serverCfgPath: 'Server.cfg Path',
+    serverPath: 'Server Path',
+    serverExe: 'Server Executable',
+    rconPassword: 'RCON Password',
+    steamCmdPath: 'SteamCMD Path',
+    steamUsername: 'Steam Username',
+    steamPassword: 'Steam Password',
+};
+
 @Component({
     selector: 'sb-settings',
     templateUrl: './settings.component.html',
@@ -44,6 +91,20 @@ export class SettingsComponent implements OnInit {
     public active = 'General';
     public sectionFilter = '';
 
+    public readonly startFlags = START_FLAGS;
+    public readonly startNumbers = START_NUMBERS;
+
+    /**
+     * The config exactly as the server last gave it to us, so the save bar can
+     * say what changed. A deep clone, NOT a reference into `config`.
+     *
+     * The array editors (mods, admins, discord channels) bind with
+     * `standalone: true`, so they never register with `configForm` and its
+     * dirty flags cannot see them - hence comparing values rather than asking
+     * the form.
+     */
+    private pristineConfig?: { [key: string]: any };
+
     public get filteredSections(): string[] {
         const f = this.sectionFilter.trim().toLowerCase();
         return f ? this.sections.filter((s) => s.toLowerCase().includes(f)) : this.sections.slice();
@@ -53,6 +114,61 @@ export class SettingsComponent implements OnInit {
         public appCommon: AppCommonService,
     ) {}
 
+    // ---- unsaved-change tracking -------------------------------------------
+
+    /** Top-level config keys whose value differs from the loaded config. */
+    public get changedKeys(): string[] {
+        const before = this.pristineConfig;
+        const after = this.config as any;
+        if (!before || !after) {
+            return [];
+        }
+        return Array.from(new Set([...Object.keys(before), ...Object.keys(after)]))
+            .filter((k) => JSON.stringify(before[k]) !== JSON.stringify(after[k]))
+            .sort();
+    }
+
+    /** Changed keys as readable labels, arrays annotated with a count. */
+    public get changeLabels(): string[] {
+        const before = this.pristineConfig || {};
+        const after = (this.config || {}) as any;
+        return this.changedKeys.map((k) => {
+            const label = this.labelFor(k);
+            if (Array.isArray(before[k]) || Array.isArray(after[k])) {
+                const n = this.countArrayChanges(before[k], after[k]);
+                return n > 1 ? `${label} (${n})` : label;
+            }
+            return label;
+        });
+    }
+
+    /** "Instance ID · Mods (2)", trimmed so the bar cannot run away. */
+    public summarise(labels: string[]): string {
+        if (labels.length <= 3) {
+            return labels.join(' · ');
+        }
+        return `${labels.slice(0, 3).join(' · ')} and ${labels.length - 3} more`;
+    }
+
+    public labelFor(key: string): string {
+        return KEY_LABELS[key]
+            ?? key
+                .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+                .replace(/^./, (c) => c.toUpperCase());
+    }
+
+    private countArrayChanges(a: any, b: any): number {
+        const before: any[] = Array.isArray(a) ? a : [];
+        const after: any[] = Array.isArray(b) ? b : [];
+        let changes = Math.abs(after.length - before.length);
+        for (let i = 0; i < Math.min(before.length, after.length); i++) {
+            if (JSON.stringify(before[i]) !== JSON.stringify(after[i])) {
+                changes++;
+            }
+        }
+        return changes;
+    }
+
     public onSubmit(): void {
         this.loading = true;
         this.appCommon.updateManagerConfig(
@@ -60,6 +176,8 @@ export class SettingsComponent implements OnInit {
         ).toPromise().then(
             () => {
                 this.loading = false;
+                // what we just sent is the new baseline
+                this.pristineConfig = JSON.parse(JSON.stringify(this.config));
                 this.outcomeBadge = {
                     message: 'Successfully updated config',
                     success: true,
@@ -99,6 +217,10 @@ export class SettingsComponent implements OnInit {
                 } else {
                     this.serverCfgProps = [];
                 }
+
+                // baseline for the save bar, taken after the normalising above
+                // so those rewrites do not read as unsaved edits
+                this.pristineConfig = JSON.parse(JSON.stringify(this.config));
 
                 this.loading = false;
             },
