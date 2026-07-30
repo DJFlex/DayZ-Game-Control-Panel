@@ -47,14 +47,17 @@
     outline: none;
 }
 .s-nav-item {
+    display: block;
     text-align: left;
     background: transparent;
     border: 0;
     border-radius: 7px;
     padding: 9px 12px;
-    font-size: 13px;
+    font-size: 13px !important;
+    line-height: 1.3;
     color: #495057 !important;
     cursor: pointer;
+    user-select: none;
     font-family: inherit;
 
     &:hover { background: rgba(127, 127, 127, .12); }
