@@ -14,8 +14,7 @@
                 <div class="s-sidenav">
                     <input class="s-search" placeholder="Find a section…" name="sectionFilter"
                            [(ngModel)]="sectionFilter" [ngModelOptions]="{standalone: true}" />
-                    <button type="button" class="s-nav-item" *ngFor="let s of sections"
-                            [hidden]="sectionFilter && !s.toLowerCase().includes(sectionFilter.toLowerCase())"
+                    <button type="button" class="s-nav-item" *ngFor="let s of filteredSections"
                             [class.on]="active === s" (click)="active = s">{{ s }}</button>
                 </div>
                 <div class="s-content">

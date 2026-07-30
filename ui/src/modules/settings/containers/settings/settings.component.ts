@@ -44,6 +44,11 @@ export class SettingsComponent implements OnInit {
     public active = 'General';
     public sectionFilter = '';
 
+    public get filteredSections(): string[] {
+        const f = this.sectionFilter.trim().toLowerCase();
+        return f ? this.sections.filter((s) => s.toLowerCase().includes(f)) : this.sections.slice();
+    }
+
     public constructor(
         public appCommon: AppCommonService,
     ) {}
