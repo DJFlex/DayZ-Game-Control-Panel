@@ -22,3 +22,12 @@ thead > tr > th {
 .a-mono { font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace; font-size: 12px; }
 .a-muted { color: #9aa2ad; }
 .a-payload { max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+// footer count + no-match state
+.a-count { font-size: 12.5px; color: #9aa2ad; white-space: nowrap; }
+.a-empty {
+    padding: 30px 20px 34px;
+    text-align: center;
+    font-size: 13px;
+    color: #9aa2ad;
+}

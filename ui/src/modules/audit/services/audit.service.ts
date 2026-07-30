@@ -14,6 +14,8 @@ interface State {
     page: number;
     pageSize: number;
     searchTerm: string;
+    /** Exact `value.resource` to keep; '' means every action. */
+    actionFilter: string;
     sortColumn: 'timestamp';
     sortDirection: SortDirection;
 }
@@ -46,11 +48,14 @@ export class AuditService {
     protected _search$ = new Subject<void>();
     protected _audits$ = new BehaviorSubject<AuditEvent[]>([]);
     protected _total$ = new BehaviorSubject<number>(0);
+    /** Every action seen in the log, for the filter dropdown. */
+    protected _actions$ = new BehaviorSubject<string[]>([]);
 
     protected _state: State = {
         page: 1,
         pageSize: 4,
         searchTerm: '',
+        actionFilter: '',
         sortColumn: 'timestamp',
         sortDirection: '',
     };
@@ -88,10 +93,21 @@ export class AuditService {
             (audits) => {
                 if (audits?.length) {
                     this.currentAudits = audits;
+                    this._actions$.next(
+                        Array.from(new Set(
+                            audits
+                                .map((x) => x.value?.resource)
+                                .filter((x): x is string => !!x),
+                        )).sort(),
+                    );
                     this._search$.next();
                 }
             },
         );
+    }
+
+    public get actions$(): Observable<string[]> {
+        return this._actions$.asObservable();
     }
 
     public get audits$(): Observable<AuditEvent[]> {
@@ -127,7 +143,16 @@ export class AuditService {
     }
 
     public set searchTerm(searchTerm: string) {
-        this._set({ searchTerm });
+        // back to page 1: the old page number is usually out of range now
+        this._set({ searchTerm, page: 1 });
+    }
+
+    public get actionFilter(): string {
+        return this._state.actionFilter;
+    }
+
+    public set actionFilter(actionFilter: string) {
+        this._set({ actionFilter, page: 1 });
     }
 
     // eslint-disable-next-line accessor-pairs
@@ -146,13 +171,18 @@ export class AuditService {
     }
 
     protected _search(): Observable<SearchResult> {
-        const { sortColumn, sortDirection, pageSize, page, searchTerm } = this._state;
+        const { sortColumn, sortDirection, pageSize, page, searchTerm, actionFilter } = this._state;
 
         // 1. sort
         let audits = sort(this.currentAudits, sortColumn, sortDirection);
 
         // 2. filter
-        audits = audits.filter((country) => matches(country, searchTerm));
+        audits = audits.filter((audit) => {
+            if (actionFilter && audit.value?.resource !== actionFilter) {
+                return false;
+            }
+            return matches(audit, searchTerm);
+        });
         const total = audits.length;
 
         // 3. paginate

@@ -1,8 +1,19 @@
 <sb-layout-dashboard>
     <sb-dashboard-head title="Audit Events" [hideBreadcrumbs]="false"></sb-dashboard-head>
+    <sb-status-banner></sb-status-banner>
     <sb-card>
-        <div class="card-header">
-            <fa-icon class="mr-1" [icon]='["fas", "table"]'></fa-icon>Audit Events
+        <div class="card-header a-head">
+            <fa-icon class="mr-1" [icon]='["fas", "exclamation-triangle"]'></fa-icon>Audit Events
+            <span class="a-head-sub">every admin action taken in this panel</span>
+            <div class="a-head-tools">
+                <select class="a-select" name="actionFilter" [(ngModel)]="auditService.actionFilter">
+                    <option value="">All actions</option>
+                    <option *ngFor="let a of auditService.actions$ | async" [value]="a">{{ actionLabel(a) }}</option>
+                </select>
+                <input class="a-input" type="text" name="searchTerm"
+                    placeholder="Search events&hellip;"
+                    [(ngModel)]="auditService.searchTerm" />
+            </div>
         </div>
         <div class="card-body">
             <sb-audit-table [pageSize]="20"></sb-audit-table>

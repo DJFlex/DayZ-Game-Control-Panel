@@ -1,13 +1,50 @@
 <div *ngIf="title" class="title-bar dark-theme">
-  &#9002; {{title}}
-  <div style="margin-left: auto; margin-right: auto;"></div>
-  <button class="btn btn-link btn-sm" (click)="toggleLock()" [title]="(lockToEnd ? 'Disable' : 'Enable') + ' Lock To End (auto scroll)'" >
-    <fa-icon [icon]='["fas", lockToEnd ? "lock" : "lock-open"]'></fa-icon>
-  </button>
+  <span class="lg-title">&#9002; {{title}}</span>
+
+  <div class="lg-tools">
+    <input class="lg-input" type="text" placeholder="Filter lines&hellip;"
+      [(ngModel)]="filterText" (ngModelChange)="applyFilter()" />
+
+    <label class="lg-chk" [class.on]="errorsOnly">
+      <input type="checkbox" [checked]="errorsOnly" (change)="toggleErrorsOnly()" />
+      Errors only
+    </label>
+
+    <button type="button" class="lg-switch" [class.on]="lockToEnd" (click)="toggleLock()"
+      [attr.aria-pressed]="lockToEnd" title="Keep scrolling to the newest line">
+      <span class="lg-switch-txt">Follow</span>
+      <span class="lg-switch-track"><span class="lg-switch-knob"></span></span>
+    </button>
+
+    <button type="button" class="lg-btn" (click)="download()"
+      title="Save the lines loaded here (not the file on the server's disk)">
+      <fa-icon [icon]='["fas", "download"]'></fa-icon>Download
+    </button>
+  </div>
 </div>
+
 <cdk-virtual-scroll-viewport [itemSize]="itemSize" [minBufferPx]="10" [maxBufferPx]="10" class="dark-theme flex-grow"
   style="overflow: scroll;" #scrollView>
   <div *cdkVirtualFor="let log of messages; let i = index;" class="lm-line" [ngClass]="severityClass(log.message)" style="white-space: nowrap">
-    {{log.message}}
+    <span class="lm-time" *ngIf="leadTime(log.message)">{{ leadTime(log.message) }}</span>{{ restOfLine(log.message) }}
   </div>
 </cdk-virtual-scroll-viewport>
+
+<div class="lg-foot dark-theme" *ngIf="title">
+  <span class="lg-foot-l">
+    <span class="lg-dot" [class.on]="lockToEnd"></span>
+    <span>{{ lockToEnd ? 'Following' : 'Paused' }}</span>
+    <span class="lg-sep">&middot;</span>
+    <span>{{ messages.length | number }} lines</span>
+    <ng-container *ngIf="filtered">
+      <span class="lg-sep">&middot;</span>
+      <span>filtered from {{ allMessages.length | number }}</span>
+      <button type="button" class="lg-link" (click)="clearFilter()">clear</button>
+    </ng-container>
+  </span>
+  <span class="lg-foot-r">
+    <span class="lg-err" *ngIf="errorCount">{{ errorCount | number }} errors</span>
+    <span class="lg-warn" *ngIf="warnCount">{{ warnCount | number }} warnings</span>
+    <button type="button" class="lg-link" (click)="jumpToLatest()">Jump to latest</button>
+  </span>
+</div>

@@ -50,6 +50,12 @@ export class AuditTableComponent implements OnInit {
         }
     }
 
+    /** Page count for the footer line; at least 1 so it never reads "of 0". */
+    public pageCount(total: number): number {
+        const size = this.auditService.pageSize || 1;
+        return Math.max(1, Math.ceil(total / size));
+    }
+
     public mapTrigger(accept?: string): string {
         if (accept?.includes('json')) {
             return 'API/Web';

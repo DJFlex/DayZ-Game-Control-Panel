@@ -24,9 +24,12 @@ $dark-light: #3c3c3c;
 }
 
 .title-bar{
-  padding: 5px;
+  padding: 7px 10px;
   font-weight: 600;
   display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .dark-theme.title-bar{
@@ -39,6 +42,142 @@ $dark-light: #3c3c3c;
   font-size: 12.5px;
   line-height: 1.6;
   padding: 0 6px;
+}
+// leading HH:MM:SS.mmm dimmed so the message itself leads the eye
+.lm-time { color: #6c757d; margin-right: 6px; }
+
+// ---- toolbar (designer Logs frame) -----------------------------------------
+$lg-bd:     #3a414d;
+$lg-input:  #2d333d;
+$lg-text:   #e6e8eb;
+$lg-muted:  #9aa2ad;
+$lg-blue:   #007bff;
+$lg-accent: #57a6ff;
+$lg-green:  #3fb950;
+
+.lg-title { font-size: 13.5px; }
+
+.lg-tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 400;
+}
+
+.lg-input {
+  width: 220px;
+  background: $lg-input;
+  border: 1px solid $lg-bd;
+  border-radius: 6px;
+  padding: 6px 11px;
+  color: $lg-text;
+  font-family: inherit;
+  font-size: 12.5px;
+  outline: none;
+
+  &::placeholder { color: #6c757d; }
+  &:focus { border-color: var(--brand-primary); }
+}
+
+.lg-chk {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  padding: 5px 10px;
+  border: 1px solid $lg-bd;
+  border-radius: 6px;
+  color: $lg-muted;
+  font-size: 12.5px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  input { accent-color: $lg-blue; width: 13px; height: 13px; margin: 0; }
+  &.on { color: $lg-text; border-color: #4d5666; }
+}
+
+// same shape as the Maintenance page switches
+.lg-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: $lg-muted;
+  font-family: inherit;
+  font-size: 12.5px;
+}
+.lg-switch-track {
+  width: 36px; height: 20px; border-radius: 999px; background: $lg-bd;
+  position: relative; flex: none; transition: background .12s ease;
+}
+.lg-switch-knob {
+  position: absolute; top: 2px; left: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: #aeb7c0; transition: left .12s ease, background .12s ease;
+}
+.lg-switch.on {
+  .lg-switch-track { background: $lg-blue; }
+  .lg-switch-knob { left: 18px; background: #fff; }
+  .lg-switch-txt { color: $lg-green; font-weight: 600; }
+}
+
+.lg-btn {
+  background: $lg-input;
+  color: $lg-text;
+  border: 1px solid $lg-bd;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  fa-icon { margin-right: 6px; font-size: 11px; color: $lg-muted; }
+  &:hover { background: $lg-bd; }
+}
+
+// ---- footer ----------------------------------------------------------------
+.lg-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  border-top: solid 1px $dark-light;
+  background: $dark-title-bar;
+  font-size: 12.5px;
+  color: $lg-muted;
+}
+.lg-foot-l, .lg-foot-r { display: flex; align-items: center; gap: 8px; }
+.lg-foot-r { gap: 14px; }
+.lg-sep { color: #6c757d; }
+.lg-dot {
+  width: 7px; height: 7px; border-radius: 50%; flex: none;
+  background: #6c757d;
+  &.on { background: $lg-green; }
+}
+.lg-err  { color: #f16b79; }
+.lg-warn { color: #ffc107; }
+.lg-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: $lg-accent;
+  font-family: inherit;
+  font-size: 12.5px;
+  cursor: pointer;
+
+  &:hover { text-decoration: underline; }
+}
+
+@media (max-width: 991px) {
+  .lg-tools { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  .lg-input { flex: 1; width: auto; min-width: 120px; }
 }
 
 .dark-theme {

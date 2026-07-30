@@ -1,10 +1,5 @@
 <form>
-    <div class="form-group form-inline">
-        Full text search:
-        <input class="form-control ml-2" type="text" name="searchTerm"
-            [(ngModel)]="auditService.searchTerm" />
-        <span class="ml-3" *ngIf="auditService.loading$ | async">Loading...</span>
-    </div>
+    <!-- search + action filter now live in the card header (designer frame) -->
     <table class="table table-striped">
         <thead>
             <tr>
@@ -36,7 +31,16 @@
             </tr>
         </tbody>
     </table>
-    <div class="d-flex justify-content-between p-2">
+    <!-- Nothing matched: say which control is hiding the rest. -->
+    <div class="a-empty" *ngIf="!((total$ | async) || 0) && !(auditService.loading$ | async)">
+        <span *ngIf="auditService.actionFilter || auditService.searchTerm; else noEvents">
+            No events match the current filter.
+        </span>
+        <ng-template #noEvents>No audit events recorded yet.</ng-template>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center p-2">
+        <span class="a-count">{{ (total$ | async) || 0 }} events &middot; page {{ auditService.page }} of {{ pageCount((total$ | async) || 0) }}</span>
         <ngb-pagination [collectionSize]="(total$ | async) || 0"
             [(page)]="auditService.page"
             [pageSize]="auditService.pageSize"
