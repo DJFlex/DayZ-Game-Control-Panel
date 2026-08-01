@@ -2,16 +2,32 @@
 // the redesign; the tints are alpha over whatever the page background is, so
 // they stay legible in the light theme too.
 
-$b-amber:     #ffc107;
-$b-amber-tx:  #ffd75e;
-$b-amber-sub: #c9bd93;
-$b-red-tx:    #f16b79;
-$b-red-sub:   #c99a9f;
-$b-mono:      'IBM Plex Mono', ui-monospace, Consolas, monospace;
+$b-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 
 :host {
     display: block;
+
+    // light defaults - the dark-theme yellows are unreadable on white
+    --dz-b-amber: #b8860b;
+    --dz-b-amber-tx: #8a6d00;
+    --dz-b-amber-sub: #7a6a3a;
+    --dz-b-red-tx: #b02a37;
+    --dz-b-red-sub: #8a5157;
 }
+
+:host-context(html[data-theme='dark']) {
+    --dz-b-amber: #ffc107;
+    --dz-b-amber-tx: #ffd75e;
+    --dz-b-amber-sub: #c9bd93;
+    --dz-b-red-tx: #f16b79;
+    --dz-b-red-sub: #c99a9f;
+}
+
+$b-amber:     var(--dz-b-amber);
+$b-amber-tx:  var(--dz-b-amber-tx);
+$b-amber-sub: var(--dz-b-amber-sub);
+$b-red-tx:    var(--dz-b-red-tx);
+$b-red-sub:   var(--dz-b-red-sub);
 
 @keyframes dz-spin {
     to { transform: rotate(360deg); }

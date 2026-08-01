@@ -31,6 +31,55 @@
         padding: 1px;
     }
 
+    // ---- tab counts ----
+    .ty-count {
+        margin-left: 5px;
+        font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+        font-size: 12px;
+        font-weight: 600;
+        color: #6c757d;
+
+        &.ok   { color: var(--brand-primary); }
+        &.warn { color: #8a6d00; }
+        &.bad  { color: #b02a37; }
+    }
+
+    // ---- sticky save bar ----
+    .ty-savebar {
+        position: sticky;
+        bottom: 0;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        padding: 12px 0;
+        margin-top: 8px;
+        background: #fff;
+        border-top: 1px solid rgba(0, 0, 0, .125);
+    }
+    .ty-summary { font-size: 12.5px; color: #6c757d; white-space: nowrap; }
+    .ty-warn { color: #8a6d00; font-weight: 600; }
+    .ty-savebar-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .ty-chk {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0;
+        font-size: 12.5px;
+        color: #6c757d;
+        white-space: nowrap;
+        cursor: pointer;
+
+        input { accent-color: var(--brand-primary); width: 13px; height: 13px; margin: 0; }
+    }
+
     .type-tabs {
         .tab-pane {
             height: 100%;
@@ -53,4 +102,14 @@
             opacity: unset;
         }
     }
+}
+
+:host-context(html[data-theme='dark']) .types-component {
+    .ty-count { color: #9aa2ad; }
+    .ty-count.ok   { color: #57a6ff; }
+    .ty-count.warn { color: #ffd75e; }
+    .ty-count.bad  { color: #f16b79; }
+    .ty-savebar { background: #262b33; border-top-color: #3a414d; }
+    .ty-summary, .ty-chk { color: #9aa2ad; }
+    .ty-warn { color: #ffd75e; }
 }

@@ -447,7 +447,20 @@ export class SettingsComponent implements OnInit {
         // never allow removing the last admin (would lock everyone out)
         if (this.config.admins && this.config.admins.length > 1) {
             this.config.admins.splice(idx, 1);
+            // reveal flags are keyed by row, so they no longer line up
+            this.revealed = {};
         }
+    }
+
+    /** Which admin passwords are unmasked; reset whenever the rows shift. */
+    private revealed: { [idx: number]: boolean } = {};
+
+    public isRevealed(idx: number): boolean {
+        return !!this.revealed[idx];
+    }
+
+    public toggleReveal(idx: number): void {
+        this.revealed[idx] = !this.revealed[idx];
     }
 
     public generateAdminPassword(admin: { password: string }): void {

@@ -1,6 +1,9 @@
 <sb-layout-dashboard>
     <sb-dashboard-head title="Logs" [hideBreadcrumbs]="false"></sb-dashboard-head>
-    <sb-card background="h-100">
+    <!-- flex column so the banner can appear without shoving the log off-screen -->
+    <div class="dz-fill-col">
+    <sb-status-banner></sb-status-banner>
+    <sb-card background="dz-fill">
         <div class="card-header p-0 log-tabs">
             <ul class="nav-tabs" [(activeId)]="activeTab" [animation]="false" ngbNav #nav="ngbNav">
                 <li [ngbNavItem]="1" [routerLink]="'rpt'">
@@ -18,4 +21,5 @@
             <router-outlet></router-outlet>
         </div>
     </sb-card>
+    </div>
 </sb-layout-dashboard>

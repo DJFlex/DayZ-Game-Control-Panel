@@ -1,24 +1,52 @@
 @import 'styles/variables.scss';
 
-// Dashboard status tiles (designer Option 3a). Dark-first, matches the app dark
-// palette; the ring gauges replace the old ngx-gauge circles.
+// Dashboard status tiles (designer Option 3a). The ring gauges replace the old
+// ngx-gauge circles. Surface colours come from custom properties so the tiles
+// work on both themes - they were dark-first, which left dark cards sitting on
+// a white page whenever the light theme was selected.
 
-$d-tile:    #262b33;
-$d-bd:      #3a414d;
-$d-track:   #2d333d;
-$d-text:    #e6e8eb;
-$d-muted:   #9aa2ad;
-$d-accent:  #57a6ff;
-$d-green:   #3fb950;
-$d-red:     #f16b79;
-$d-amber:   #e0a41a;
-$d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
+$d-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
 
 :host {
     display: block;
-    color: $d-text;
     font-family: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+
+    // light defaults
+    --dz-tile: #fff;
+    --dz-tile-bd: rgba(0, 0, 0, .125);
+    --dz-tile-text: inherit;
+    --dz-tile-muted: #6c757d;
+    --dz-tile-accent: var(--brand-primary);
+    --dz-ring-fill: var(--brand-primary);
+    --dz-ring-track: #e4e7ea;
+    --dz-ok: #2e9e4b;
+    --dz-bad: #b02a37;
+    --dz-warn: #8a6d00;
+
+    color: var(--dz-tile-text);
 }
+
+:host-context(html[data-theme='dark']) {
+    --dz-tile: #262b33;
+    --dz-tile-bd: #3a414d;
+    --dz-tile-text: #e6e8eb;
+    --dz-tile-muted: #9aa2ad;
+    --dz-tile-accent: #57a6ff;
+    --dz-ring-fill: #57a6ff;
+    --dz-ring-track: #2d333d;
+    --dz-ok: #3fb950;
+    --dz-bad: #f16b79;
+    --dz-warn: #e0a41a;
+}
+
+$d-tile:    var(--dz-tile);
+$d-bd:      var(--dz-tile-bd);
+$d-text:    var(--dz-tile-text);
+$d-muted:   var(--dz-tile-muted);
+$d-accent:  var(--dz-tile-accent);
+$d-green:   var(--dz-ok);
+$d-red:     var(--dz-bad);
+$d-amber:   var(--dz-warn);
 
 .d-head {
     display: flex;
@@ -54,6 +82,7 @@ $d-mono:    'IBM Plex Mono', ui-monospace, Consolas, monospace;
     &.ok { color: $d-green; } &.bad { color: $d-red; } &.warn { color: $d-amber; }
 }
 .d-tile-unit { font-size: 13px; color: $d-muted; font-weight: 400; }
+.d-tile-sub  { font-size: 12px; color: $d-muted; }
 
 .d-chip {
     width: 40px; height: 40px; border-radius: 10px; flex: none;

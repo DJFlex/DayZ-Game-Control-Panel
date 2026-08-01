@@ -25,6 +25,8 @@
                         <div class="d-tile-val" [ngClass]="serverStateClass(d.sysw.value.serverState)">
                             {{ serverStateLabel(d.sysw.value.serverState) }}
                         </div>
+                        <!-- only when the history can actually date the stop -->
+                        <div class="d-tile-sub" *ngIf="(stoppedSince | async) as since">since {{ since | date:'HH:mm' }}</div>
                     </div>
                 </div>
                 <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>
@@ -39,6 +41,7 @@
                     <div class="d-tile-txt">
                         <div class="d-tile-label">SYSTEM CPU</div>
                         <div class="d-tile-val">{{ cpuLabel(d.sysw.value.system.cpuTotal) }}</div>
+                        <div class="d-tile-sub" *ngIf="cores(d.sysw.value.system) as c">{{ c }}</div>
                     </div>
                 </div>
                 <a class="d-foot" routerLink="/dashboard/system">View details <fa-icon [icon]="['fas','chevron-right']"></fa-icon></a>

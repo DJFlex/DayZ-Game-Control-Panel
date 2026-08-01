@@ -39,6 +39,24 @@ body {
     }
 }
 
+// ---- full-height page that can carry a banner -------------------------------
+// Pages whose card fills the viewport used `h-100`, which is 100% of the parent
+// regardless of what else is in it - so anything added above pushed the card
+// off-screen. A flex column instead lets the card take whatever is left, which
+// is the same result when there is no banner and a correct one when there is.
+
+.dz-fill-col {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card.dz-fill {
+    flex: 1 1 auto;
+    min-height: 0;
+    margin-bottom: 0;
+}
+
 // Set spacing on containers for page symmetry
 
 .container {

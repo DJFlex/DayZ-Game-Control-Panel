@@ -1,78 +1,102 @@
 <sb-layout-dashboard>
     <sb-dashboard-head title="System" [hideBreadcrumbs]="false"></sb-dashboard-head>
+    <sb-status-banner></sb-status-banner>
 
-    <div class="row">
-        <div class="col-xl-6">
-            <sb-card>
-                <div class="card-header">
-                    <fa-icon class="mr-1" [icon]='["fas", "chart-area"]'></fa-icon>System CPU
-                </div>
-                <div class="card-body">
+    <!-- Six loose charts became three process cards, each pairing CPU with RAM
+         and leading with the current value (designer frame). -->
+    <ng-container *ngIf="{ r: (latest | async) } as d">
+
+        <div class="sy-card">
+            <div class="sy-head">
+                <fa-icon [icon]='["fas", "chart-area"]'></fa-icon>
+                <span class="sy-title">Host System</span>
+                <span class="sy-meta">{{ hostSummary(d.r?.value) }}</span>
+            </div>
+            <div class="sy-body">
+                <div class="sy-metric">
+                    <div class="sy-metric-head">
+                        <span class="sy-metric-name">CPU</span>
+                        <span class="sy-now">now <b>{{ pct(d.r?.value?.system?.cpuTotal) }}</b></span>
+                    </div>
                     <sb-charts-area [chartConf]="(commonService.chart('system', 'cpu') | async)!"></sb-charts-area>
                 </div>
-                <div class="card-footer small text-muted">Last Updated: {{ (getSystemFetcher().lastUpdate | async) | date:'medium' }}</div>
-            </sb-card>
-        </div>
-        <div class="col-xl-6">
-            <sb-card>
-                <div class="card-header">
-                    <fa-icon class="mr-1" [icon]='["fas", "chart-area"]'></fa-icon>System RAM
-                </div>
-                <div class="card-body">
+                <div class="sy-metric">
+                    <div class="sy-metric-head">
+                        <span class="sy-metric-name">RAM</span>
+                        <span class="sy-now">now <b>{{ mem(d.r?.value?.system?.mem) }}</b></span>
+                    </div>
                     <sb-charts-area [chartConf]="(commonService.chart('system', 'ram') | async)!"></sb-charts-area>
                 </div>
-                <div class="card-footer small text-muted">Last Updated: {{ (getSystemFetcher().lastUpdate | async) | date:'medium' }}</div>
-            </sb-card>
+            </div>
         </div>
-    </div>
 
-    <div class="row">
-        <div class="col-lg-6">
-            <sb-card>
-                <div class="card-header">
-                    <fa-icon class="mr-1" [icon]='["fas", "chart-bar"]'></fa-icon>DayZ CPU
-                </div>
-                <div class="card-body">
+        <div class="sy-card">
+            <div class="sy-head">
+                <fa-icon [icon]='["fas", "chart-bar"]'></fa-icon>
+                <span class="sy-title">DayZ Server Process</span>
+                <span class="sy-state" [class.on]="serverRunning(d.r?.value)">
+                    <span class="sy-dot"></span>{{ serverRunning(d.r?.value) ? 'RUNNING' : 'STOPPED' }}
+                </span>
+                <span class="sy-meta" *ngIf="uptime(d.r?.value?.server?.uptime) as up">up {{ up }}</span>
+            </div>
+            <div class="sy-body" *ngIf="d.r?.value?.server; else serverDown">
+                <div class="sy-metric">
+                    <div class="sy-metric-head">
+                        <span class="sy-metric-name">CPU</span>
+                        <span class="sy-now">now <b>{{ pct(d.r?.value?.server?.cpuTotal) }}</b></span>
+                    </div>
                     <sb-charts-area [chartConf]="(commonService.chart('process', 'cpu') | async)!"></sb-charts-area>
                 </div>
-                <div class="card-footer small text-muted">Last Updated: {{ (getPlayerFetcher().lastUpdate | async) | date:'medium' }}</div>
-            </sb-card>
-        </div>
-        <div class="col-lg-6">
-            <sb-card>
-                <div class="card-header">
-                    <fa-icon class="mr-1" [icon]='["fas", "chart-pie"]'></fa-icon>DayZ RAM
-                </div>
-                <div class="card-body">
+                <div class="sy-metric">
+                    <div class="sy-metric-head">
+                        <span class="sy-metric-name">RAM</span>
+                        <span class="sy-now">now <b>{{ mem(d.r?.value?.server?.mem) }}</b></span>
+                    </div>
                     <sb-charts-area [chartConf]="(commonService.chart('process', 'ram') | async)!"></sb-charts-area>
                 </div>
-                <div class="card-footer small text-muted">Last Updated: {{ (getSystemFetcher().lastUpdate | async) | date:'medium' }}</div>
-            </sb-card>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-6">
-            <sb-card>
-                <div class="card-header">
-                    <fa-icon class="mr-1" [icon]='["fas", "chart-bar"]'></fa-icon>Manager CPU
+            </div>
+            <!-- process stats only exist while the server runs, so say so rather
+                 than drawing a flat line at zero -->
+            <ng-template #serverDown>
+                <div class="sy-empty">
+                    The server process is not running, so it reports no CPU or memory.
+                    <a routerLink="/dashboard/maintenance">Go to Maintenance</a>
                 </div>
-                <div class="card-body">
+            </ng-template>
+        </div>
+
+        <div class="sy-card">
+            <div class="sy-head">
+                <fa-icon [icon]='["fas", "cogs"]'></fa-icon>
+                <span class="sy-title">Manager Process</span>
+                <span class="sy-state on"><span class="sy-dot"></span>RUNNING</span>
+                <span class="sy-meta">
+                    serves this panel<ng-container *ngIf="uptime(d.r?.value?.manager?.uptime) as up"> &middot; up {{ up }}</ng-container>
+                </span>
+            </div>
+            <div class="sy-body">
+                <div class="sy-metric">
+                    <div class="sy-metric-head">
+                        <span class="sy-metric-name">CPU</span>
+                        <span class="sy-now">now <b>{{ pct(d.r?.value?.manager?.cpuTotal) }}</b></span>
+                    </div>
                     <sb-charts-area [chartConf]="(commonService.chart('manager', 'cpu') | async)!"></sb-charts-area>
                 </div>
-                <div class="card-footer small text-muted">Last Updated: {{ (getSystemFetcher().lastUpdate | async) | date:'medium' }}</div>
-            </sb-card>
-        </div>
-        <div class="col-lg-6">
-            <sb-card>
-                <div class="card-header">
-                    <fa-icon class="mr-1" [icon]='["fas", "chart-pie"]'></fa-icon>Manager RAM
-                </div>
-                <div class="card-body">
+                <div class="sy-metric">
+                    <div class="sy-metric-head">
+                        <span class="sy-metric-name">RAM</span>
+                        <span class="sy-now">now <b>{{ mem(d.r?.value?.manager?.mem) }}</b></span>
+                    </div>
                     <sb-charts-area [chartConf]="(commonService.chart('manager', 'ram') | async)!"></sb-charts-area>
                 </div>
-                <div class="card-footer small text-muted">Last Updated: {{ (getSystemFetcher().lastUpdate | async) | date:'medium' }}</div>
-            </sb-card>
+            </div>
         </div>
-    </div>
+
+        <div class="sy-foot">
+            Last updated
+            <span class="sy-mono">{{ d.r?.timestamp ? (d.r?.timestamp | date:'HH:mm:ss') : '&mdash;' }}</span>
+            &middot; sampled every {{ commonService.refreshRate }} s
+        </div>
+
+    </ng-container>
 </sb-layout-dashboard>

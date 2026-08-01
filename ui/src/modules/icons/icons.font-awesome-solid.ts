@@ -60,6 +60,9 @@ import {
     faPaperPlane,
     faClock,
     faUserSlash,
+    faEye,
+    faEyeSlash,
+    faUserShield,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const fontAwesomeSolidIcons = {
@@ -122,4 +125,7 @@ export const fontAwesomeSolidIcons = {
     faPaperPlane,
     faClock,
     faUserSlash,
+    faEye,
+    faEyeSlash,
+    faUserShield,
 };

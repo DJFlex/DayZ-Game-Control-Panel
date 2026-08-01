@@ -23,9 +23,48 @@ export class FileEditorComponent implements OnInit {
 
     public outcome?: { message: string; success: boolean };
 
+    /** Filter over the current directory listing. */
+    public fileFilter = '';
+
     public constructor(
         private files: MissionFilesService,
     ) {}
+
+    public get visibleEntries(): string[] {
+        const f = this.fileFilter.trim().toLowerCase();
+        return f ? this.entries.filter((e) => e.toLowerCase().includes(f)) : this.entries;
+    }
+
+    /** Gutter numbers for the open file. */
+    public get lineNumbers(): number[] {
+        const count = this.lineCount;
+        return Array.from({ length: count }, (_, i) => i + 1);
+    }
+
+    public get lineCount(): number {
+        if (!this.content) {
+            return 1;
+        }
+        return this.content.split('\n').length;
+    }
+
+    /** Extension-derived label for the status bar; no content sniffing. */
+    public get fileKind(): string {
+        const ext = (this.openFile || '').split('.').pop()?.toLowerCase();
+        switch (ext) {
+            case 'xml': return 'XML';
+            case 'json': return 'JSON';
+            case 'txt': return 'Text';
+            case 'cfg': return 'Config';
+            case 'c': return 'Enforce Script';
+            default: return ext ? ext.toUpperCase() : 'Text';
+        }
+    }
+
+    /** Keeps the line-number gutter aligned with the textarea as it scrolls. */
+    public syncGutter(event: Event, gutter: HTMLElement): void {
+        gutter.scrollTop = (event.target as HTMLTextAreaElement).scrollTop;
+    }
 
     public ngOnInit(): void {
         void this.loadDir('');

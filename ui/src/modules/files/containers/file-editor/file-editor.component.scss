@@ -1,87 +1,213 @@
 @import 'styles/variables.scss';
 
-.fe-hint {
-    font-size: 0.85rem;
+// Two-pane editor: tree + code view with a line-number gutter, save controls in
+// the header bar, status line underneath (designer frame).
+
+$fe-mono: 'IBM Plex Mono', ui-monospace, Consolas, 'Courier New', monospace;
+$fe-line: 1.9;
+
+.fe-card {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-radius: 10px;
+    overflow: hidden;
 }
 
-.fe-path {
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 0.9rem;
+// ---- header -----------------------------------------------------------------
+.fe-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 11px 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, .125);
 
-    .fe-sep {
-        margin: 0 0.25rem;
-        opacity: 0.5;
-    }
+    > fa-icon { color: #6c757d; font-size: 13px; }
+}
+.fe-crumbs {
+    font-family: $fe-mono;
+    font-size: 12.5px;
+    color: #6c757d;
+    word-break: break-all;
+
+    a { color: inherit; }
+    .fe-sep { margin: 0 .25rem; opacity: .5; }
+}
+.fe-open { font-weight: 600; color: inherit; }
+.fe-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #ffc107;
+    flex: none;
+}
+.fe-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.fe-chk {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12.5px;
+    color: #6c757d;
+    cursor: pointer;
+    white-space: nowrap;
+
+    input { accent-color: var(--brand-primary); width: 13px; height: 13px; margin: 0; }
+}
+.fe-alert { margin: 12px 18px 0; }
+
+// ---- panes ------------------------------------------------------------------
+.fe-panes {
+    display: flex;
+    align-items: stretch;
+    min-height: 520px;
 }
 
-.fe-browser {
-    border: 1px solid rgba(127, 127, 127, 0.3);
-    border-radius: 4px;
-    max-height: 480px;
+.fe-tree {
+    width: 290px;
+    flex: none;
+    border-right: 1px solid rgba(0, 0, 0, .125);
+    padding: 10px 8px;
     overflow-y: auto;
-    font-size: 0.9rem;
+    max-height: 560px;
+    font-size: 13px;
 }
+.fe-filter {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: inherit;
+    font-family: inherit;
+    font-size: 12px;
+    outline: none;
 
+    &:focus { border-color: var(--brand-primary); }
+}
 .fe-entry {
-    padding: 0.3rem 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    border-radius: 6px;
     cursor: pointer;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 
-    &:hover {
-        background: rgba(127, 127, 127, 0.15);
-    }
+    fa-icon { font-size: 11px; color: #6c757d; flex: none; }
 
-    &.fe-dir {
-        font-weight: 600;
-    }
-
+    &:hover { background: rgba(127, 127, 127, .12); }
+    &.fe-dir { font-weight: 600; fa-icon { color: var(--brand-primary); } }
     &.active {
-        background: rgba(0, 123, 255, 0.25);
+        background: rgba(0, 123, 255, .15);
+        font-weight: 600;
+        fa-icon { color: var(--brand-primary); }
     }
 }
-
-.fe-up {
-    opacity: 0.8;
-}
-
+.fe-up { opacity: .8; }
+.fe-hint-to { margin-left: auto; font-size: 10.5px; color: #6c757d; }
 .fe-msg {
-    padding: 0.4rem 0.6rem;
-    opacity: 0.6;
+    padding: .4rem .6rem;
+    opacity: .6;
     font-style: italic;
 }
 
-.fe-empty-editor {
-    padding: 2rem 0;
+// ---- code view --------------------------------------------------------------
+.fe-editor { flex: 1; min-width: 0; display: flex; }
+
+.fe-empty {
+    flex: 1;
+    align-self: center;
+    padding: 2rem;
     text-align: center;
+    color: #6c757d;
 }
+.fe-empty-sub { margin-top: 8px; font-size: 12.5px; }
 
-.fe-toolbar {
-    font-family: 'Consolas', 'Courier New', monospace;
-    word-break: break-all;
+.fe-code {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    background: #f6f7f8;
+    font-family: $fe-mono;
+    font-size: 12.5px;
+    line-height: $fe-line;
 }
-
+.fe-gutter {
+    flex: none;
+    width: 52px;
+    padding: 12px 8px 12px 0;
+    text-align: right;
+    color: #adb5bd;
+    border-right: 1px solid rgba(0, 0, 0, .1);
+    overflow: hidden;
+    user-select: none;
+    // must match the textarea exactly or the numbers drift out of line
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+}
 .fe-textarea {
-    width: 100%;
-    min-height: 480px;
-    font-family: 'Consolas', 'Courier New', monospace;
-    font-size: 0.85rem;
-    line-height: 1.4;
+    flex: 1;
+    min-width: 0;
+    height: 520px;
+    padding: 12px 16px;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    resize: none;
+    outline: none;
     white-space: pre;
+    overflow: auto;
     tab-size: 4;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
 }
 
-.fe-actions {
+// ---- status bar -------------------------------------------------------------
+.fe-foot {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 9px 18px;
+    border-top: 1px solid rgba(0, 0, 0, .125);
+    font-size: 12px;
+    color: #6c757d;
+}
+.fe-foot-state {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &.saved { color: #2e9e4b; }
 }
 
-.fe-backup {
-    margin-bottom: 0;
-    font-size: 0.9rem;
+:host-context(html[data-theme='dark']) {
+    .fe-card { background: #262b33; border-color: #3a414d; }
+    .fe-head, .fe-tree, .fe-foot { border-color: #3a414d; }
+    .fe-crumbs, .fe-chk, .fe-msg, .fe-empty, .fe-hint-to, .fe-foot { color: #9aa2ad; }
+    .fe-open { color: #e6e8eb; }
+    .fe-filter { background: #2d333d; border-color: #3a414d; color: #e6e8eb; }
+    .fe-entry fa-icon { color: #6c757d; }
+    .fe-entry.fe-dir fa-icon, .fe-entry.active fa-icon { color: #57a6ff; }
+    .fe-entry.active { background: rgba(0, 123, 255, .15); }
+    .fe-code { background: #14171c; color: #e6e8eb; }
+    .fe-gutter { color: #4a5058; border-right-color: #2d333d; }
+    .fe-foot-state.saved { color: #3fb950; }
+}
 
-    input {
-        margin-right: 0.35rem;
-    }
+@media (max-width: 991px) {
+    .fe-panes { flex-direction: column; }
+    .fe-tree { width: 100%; max-height: 260px; border-right: 0; border-bottom: 1px solid rgba(0, 0, 0, .125); }
 }

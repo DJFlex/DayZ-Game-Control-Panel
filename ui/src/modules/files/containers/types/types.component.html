@@ -40,7 +40,7 @@
 
                 <ul class="nav-tabs mt-auto" [(activeId)]="activeTab" ngbNav #nav="ngbNav">
                     <li [ngbNavItem]="0">
-                        <a ngbNavLink>Types</a>
+                        <a ngbNavLink>Types <span class="ty-count ok">{{ (combinedClasses || []).length | number }}</span></a>
                         <ng-template ngbNavContent>
                             <div style="height: 100%; margin-bottom: 20px;">
                                 <ag-grid-angular
@@ -70,7 +70,7 @@
                     </li>
 
                     <li [ngbNavItem]="1">
-                        <a ngbNavLink>Missing Types</a>
+                        <a ngbNavLink>Missing Types <span class="ty-count warn">{{ (missingClasses || []).length | number }}</span></a>
                         <ng-template ngbNavContent>
                             <div style="height: 100%">
                                 <div>
@@ -85,7 +85,7 @@
                         </ng-template>
                     </li>
                     <li [ngbNavItem]="2" *ngIf="missingTraderItems && missingTraderItems.length">
-                        <a ngbNavLink>Missing Trader Items</a>
+                        <a ngbNavLink>Missing Trader Items <span class="ty-count warn">{{ missingTraderItems.length | number }}</span></a>
                         <ng-template ngbNavContent>
                             <div style="height: 100%">
                                 <div >
@@ -100,7 +100,7 @@
                         </ng-template>
                     </li>
                     <li [ngbNavItem]="3" *ngIf="unknownTraderItems && unknownTraderItems.length">
-                        <a ngbNavLink>Unknown Trader Items</a>
+                        <a ngbNavLink>Unknown Trader Items <span class="ty-count bad">{{ unknownTraderItems.length | number }}</span></a>
                         <ng-template ngbNavContent>
                             <div style="height: 100%">
                                 <div >
@@ -115,7 +115,7 @@
                         </ng-template>
                     </li>
                     <li [ngbNavItem]="4" *ngIf="unknownClasses && unknownClasses.length">
-                        <a ngbNavLink>Unknown Items</a>
+                        <a ngbNavLink>Unknown Items <span class="ty-count bad">{{ unknownClasses.length | number }}</span></a>
                         <ng-template ngbNavContent>
                             <div style="height: 100%">
                                 <div >
@@ -130,7 +130,7 @@
                         </ng-template>
                     </li>
                     <li [ngbNavItem]="5" *ngIf="traderOnlyItems && traderOnlyItems.length">
-                        <a ngbNavLink>Trader Only Items</a>
+                        <a ngbNavLink>Trader Only Items <span class="ty-count">{{ traderOnlyItems.length | number }}</span></a>
                         <ng-template ngbNavContent>
                             <div style="height: 100%">
                                 <div >
@@ -254,34 +254,39 @@
                             Download
                         </button>
                     </div>
-                    <div class="d-flex flex-row">
-                        <div class="d-flex flex-row ml-1 mr-1" style="align-items: center;">
-                            <label class="form-label" style="white-space: nowrap;">Create Backup</label>
-                            <input type="checkbox" class="form-control form-control-sm mx-1"
-                                   [(ngModel)]="withBackup"
-                                   [ngModelOptions]="{standalone: true}"
-                                   [disabled]="submitting"
-                            >
-                        </div>
-                        <div class="d-flex flex-row ml-1 mr-1" style="align-items: center;">
-                            <label class="form-label" style="white-space: nowrap;">Restart Server</label>
-                            <input type="checkbox" class="form-control form-control-sm mx-1"
-                                   [(ngModel)]="withRestart"
-                                   [ngModelOptions]="{standalone: true}"
-                                   [disabled]="submitting"
-                            >
-                        </div>
-                        <button type="submit" class="btn btn-success ml-1 mr-1"
-                                [disabled]="!configForm.form.valid || submitting"
-                        >
-                            <fa-icon *ngIf="submitting" [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>
-                            Submit
-                        </button>
-                        <button type="button" class="btn btn-primary ml-1 mr-1"
+                </div>
+
+                <!-- Save actions and their safety options in one sticky bar
+                     (designer frame), so they stay reachable down a long grid. -->
+                <div class="ty-savebar">
+                    <span class="ty-summary">
+                        {{ (combinedClasses || []).length | number }} types
+                        <ng-container *ngIf="(missingClasses || []).length">
+                            &middot; <span class="ty-warn">{{ missingClasses.length | number }} missing</span>
+                        </ng-container>
+                    </span>
+                    <div class="ty-savebar-right">
+                        <label class="ty-chk">
+                            <input type="checkbox" [(ngModel)]="withBackup"
+                                   [ngModelOptions]="{standalone: true}" [disabled]="submitting" />
+                            Create backup first
+                        </label>
+                        <label class="ty-chk">
+                            <input type="checkbox" [(ngModel)]="withRestart"
+                                   [ngModelOptions]="{standalone: true}" [disabled]="submitting" />
+                            Restart server after
+                        </label>
+                        <button type="button" class="btn btn-secondary"
                                 (click)="resetClicked()"
                                 [disabled]="submitting"
                         >
                             Reset
+                        </button>
+                        <button type="submit" class="btn btn-primary"
+                                [disabled]="!configForm.form.valid || submitting"
+                        >
+                            <fa-icon class="mr-1" *ngIf="submitting" [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>
+                            Submit Changes
                         </button>
                     </div>
                 </div>

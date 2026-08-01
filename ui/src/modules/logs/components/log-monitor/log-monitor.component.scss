@@ -46,6 +46,30 @@ $dark-light: #3c3c3c;
 // leading HH:MM:SS.mmm dimmed so the message itself leads the eye
 .lm-time { color: #6c757d; margin-right: 6px; }
 
+// ---- exception callout ------------------------------------------------------
+// The designer wraps a multi-line exception in a tinted box. A box would need
+// variable row heights, which breaks cdk-virtual-scroll's fixed itemSize, so the
+// same effect is drawn as a continuous tinted band with a red rule down the run
+// of error lines - every row stays exactly one line tall.
+//
+// Caveat: run boundaries are detected from rendered siblings, so a run that
+// starts above the viewport rounds off at the first visible row.
+.lm-line.msg-err {
+    background: rgba(220, 53, 69, .10);
+    box-shadow: inset 2px 0 0 rgba(220, 53, 69, .55);
+    padding-left: 10px;
+}
+// first of a run
+.lm-line:not(.msg-err) + .lm-line.msg-err {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+}
+// last of a run
+.lm-line.msg-err:has(+ .lm-line:not(.msg-err)) {
+    border-bottom-left-radius: 6px;
+    border-bottom-right-radius: 6px;
+}
+
 // ---- toolbar (designer Logs frame) -----------------------------------------
 $lg-bd:     #3a414d;
 $lg-input:  #2d333d;

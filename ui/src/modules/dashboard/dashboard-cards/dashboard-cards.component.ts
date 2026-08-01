@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { MetricType, MetricTypeEnum, MetricWrapper, RconPlayer, ServerState, SystemReport } from '../../app-common/models';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
+
 import { ApiFetcher, AppCommonService } from '../../app-common/services/app-common.service';
 
 @Component({
@@ -68,10 +69,43 @@ export class DashboardCardsComponent implements OnInit {
         return 'High';
     }
 
-    /** Conic-gradient background for a ring gauge at the given percent. */
+    /**
+     * Conic-gradient background for a ring gauge. Colours come from custom
+     * properties so the same gauge works on the light theme; hardcoding them
+     * here made the track dark whatever the theme was.
+     */
     public ring(pct?: number | null): string {
         const p = Math.max(0, Math.min(100, Math.round(pct || 0)));
-        return `conic-gradient(#57a6ff 0 ${p}%, #2d333d ${p}% 100%)`;
+        return `conic-gradient(var(--dz-ring-fill) 0 ${p}%, var(--dz-ring-track) ${p}% 100%)`;
+    }
+
+    /**
+     * When the current stopped stretch began: the earliest sample in the
+     * unbroken tail of STOPPED readings. 0 when every sample we hold is
+     * stopped, i.e. we never saw it running and so cannot date the stop.
+     */
+    public get stoppedSince(): Observable<number> {
+        return this.getFetcher(MetricTypeEnum.SYSTEM).data.pipe(
+            map((all: MetricWrapper<SystemReport>[] | null) => {
+                if (!all?.length) {
+                    return 0;
+                }
+                let since = 0;
+                for (let i = all.length - 1; i >= 0; i--) {
+                    if (all[i].value?.serverState !== ServerState.STOPPED) {
+                        break;
+                    }
+                    since = all[i].timestamp;
+                }
+                return since === all[0].timestamp ? 0 : since;
+            }),
+        );
+    }
+
+    /** Core count for the CPU tile sub-line; blank when not reported. */
+    public cores(sys?: { cpuEach?: number[] } | null): string {
+        const n = sys?.cpuEach?.length;
+        return n ? `${n} ${n === 1 ? 'core' : 'cores'}` : '';
     }
 
     public get playerStream(): Observable<MetricWrapper<RconPlayer[]> | null> {

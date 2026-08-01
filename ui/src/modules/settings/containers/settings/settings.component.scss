@@ -88,6 +88,41 @@
     a { display: block; }
 }
 
+// ---- admins table ----
+.s-addadmin { margin-left: 10px; vertical-align: middle; }
+
+.s-adm {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1.4fr 40px;
+    gap: 0 14px;
+    align-items: center;
+    padding: 7px 2px;
+    border-bottom: 1px solid rgba(0, 0, 0, .07);
+}
+.s-adm-head {
+    padding: 12px 2px 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    color: #6c757d;
+}
+.s-adm-pw { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.s-adm-btn { flex: none; }
+.s-adm-pw .s-input { flex: 1; min-width: 0; }
+
+// the level is the one field worth reading at a glance
+.s-adm-level {
+    font-weight: 600;
+
+    &.lvl-admin    { color: #b02a37; }
+    &.lvl-manage   { color: #0056b3; }
+    &.lvl-moderate { color: #8a6d00; }
+    &.lvl-view     { color: #6c757d; }
+}
+
+.s-modkill:disabled { opacity: .4; cursor: not-allowed; }
+
 // ---- mods: tabs + rows ----
 .s-modtabs {
     display: flex;
@@ -343,6 +378,15 @@ label.s-flag { cursor: pointer; }
     .s-switch-track { background: #3a414d; }
     .s-switch-knob { background: #aeb7c0; }
     .s-switch.on .s-switch-knob { background: #fff; }
+
+    .s-adm { border-bottom-color: #2d333d; }
+    .s-adm-head { border-bottom-color: #3a414d; color: #9aa2ad; }
+    .s-adm-level {
+        &.lvl-admin    { color: #f16b79; }
+        &.lvl-manage   { color: #57a6ff; }
+        &.lvl-moderate { color: #ffd75e; }
+        &.lvl-view     { color: #9aa2ad; }
+    }
 }
 
 @media (max-width: 767px) {
