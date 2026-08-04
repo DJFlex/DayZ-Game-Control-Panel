@@ -59,12 +59,25 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
         private common: AppCommonService,
     ) {}
 
+    /** When the server state on screen was last confirmed by a report. */
+    public stateAt?: number;
+
+    /** Set while we are polling hard for a state we just asked for. */
+    public awaiting?: 'stop' | 'start' | 'restart';
+    private watchUntil = 0;
+    private watchTimer?: any;
+
     public ngOnInit(): void {
         void this.loadBackups();
+        void this.refreshLocks();
 
         this.common.getApiFetcher<MetricTypeEnum.SYSTEM, MetricWrapper<SystemReport>>(MetricTypeEnum.SYSTEM)
             .latestData.pipe(takeUntil(this.destroy$))
-            .subscribe((x) => { this.serverState = x?.value?.serverState; });
+            .subscribe((x) => {
+                this.serverState = x?.value?.serverState;
+                this.stateAt = x?.timestamp;
+                this.checkAwaited();
+            });
 
         this.common.getApiFetcher<MetricTypeEnum.PLAYERS, MetricWrapper<RconPlayer[]>>(MetricTypeEnum.PLAYERS)
             .latestData.pipe(takeUntil(this.destroy$))
@@ -72,8 +85,77 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
 
     public ngOnDestroy(): void {
+        this.stopWatching();
         this.destroy$.next();
         this.destroy$.complete();
+    }
+
+    /**
+     * The status bar used to move only on the next metric poll - 30s by
+     * default - so a stop or resume looked like it had done nothing. After an
+     * action we pull the state straight away and then keep pulling every couple
+     * of seconds until it settles or the watch times out.
+     */
+    private watchState(awaiting: 'stop' | 'start' | 'restart', seconds = 90): void {
+        this.awaiting = awaiting;
+        this.watchUntil = new Date().valueOf() + (seconds * 1000);
+        this.common.triggerUpdate();
+
+        this.stopWatching();
+        this.watchTimer = setInterval(
+            () => {
+                if (new Date().valueOf() > this.watchUntil) {
+                    // give up quietly; the banner text explains what we saw
+                    this.stopWatching();
+                    this.awaiting = undefined;
+                    return;
+                }
+                this.common.triggerUpdate();
+            },
+            2000,
+        );
+    }
+
+    private stopWatching(): void {
+        if (this.watchTimer) {
+            clearInterval(this.watchTimer);
+            this.watchTimer = undefined;
+        }
+    }
+
+    /** Stop watching once the state we asked for actually arrives. */
+    private checkAwaited(): void {
+        if (!this.awaiting) {
+            return;
+        }
+        const settled =
+            (this.awaiting === 'stop' && this.serverState === ServerState.STOPPED)
+            || (this.awaiting === 'start' && this.serverState === ServerState.STARTED)
+            || (this.awaiting === 'restart' && this.serverState === ServerState.STARTED);
+
+        if (settled) {
+            this.awaiting = undefined;
+            this.stopWatching();
+        }
+    }
+
+    /** Read the real restart-lock state instead of assuming it. */
+    public async refreshLocks(): Promise<void> {
+        const locked = await this.maintenance.isRestartLocked();
+        if (locked !== null) {
+            this.restartLocked = locked;
+            this.inMaintenance = locked && !this.serverOnline;
+        }
+    }
+
+    /** What the panel is currently waiting for, in plain words. */
+    public get awaitingText(): string {
+        switch (this.awaiting) {
+            case 'stop': return 'Waiting for the server process to exit…';
+            case 'start': return 'Waiting for the server to come back up…';
+            case 'restart': return 'Waiting for the server to restart…';
+            default: return '';
+        }
     }
 
     public get serverOnline(): boolean {
@@ -87,6 +169,12 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             case ServerState.STOPPING: return 'Stopping';
             default: return 'Stopped';
         }
+    }
+
+    /** Mid-transition: neither cleanly up nor cleanly down. */
+    public get statePending(): boolean {
+        return this.serverState === ServerState.STARTING
+            || this.serverState === ServerState.STOPPING;
     }
 
     /** Next 4-hourly restart boundary (matches the current 00/04/08/… schedule). */
@@ -138,12 +226,14 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             const stopped = await this.maintenance.shutdown();
             if (locked && stopped) {
                 this.inMaintenance = true;
-                this.outcomeBadge = { message: 'Server stopped for maintenance. It will stay off until you click Resume.', success: true };
+                this.outcomeBadge = { message: 'Stop requested. The status below updates as it happens.', success: true };
+                this.watchState('stop');
             } else {
                 this.outcomeBadge = { message: 'Could not fully stop - check Restart lock / Shutdown manually.', success: false };
             }
         } finally {
             this.maintenanceBusy = false;
+            void this.refreshLocks();
         }
     }
 
@@ -158,12 +248,15 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             if (unlocked) {
                 this.restartLocked = false;
                 this.inMaintenance = false;
-                this.outcomeBadge = { message: 'Resuming - the server will start back up shortly.', success: true };
+                this.outcomeBadge = { message: 'Resuming. The status below updates as it happens.', success: true };
+                // the monitor only starts it on its next poll, so allow for that
+                this.watchState('start', 150);
             } else {
                 this.outcomeBadge = { message: 'Could not unlock - try Unlock Server Restart manually.', success: false };
             }
         } finally {
             this.maintenanceBusy = false;
+            void this.refreshLocks();
         }
     }
 
@@ -299,9 +392,11 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
         const success = await this.maintenance.restartServer(force);
         if (success) {
             this.outcomeBadge = {
-                message: 'Successfully killed the server',
+                // it is a request, not a result - the status below reports the result
+                message: 'Restart requested. The status below updates as it happens.',
                 success: true,
             };
+            this.watchState('restart', 180);
         } else {
             this.outcomeBadge = {
                 message: 'Failed to kill the server',
@@ -337,9 +432,10 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
         const success = await this.maintenance.shutdown();
         if (success) {
             this.outcomeBadge = {
-                message: 'Successfully executed RCON shutdown',
+                message: 'Shutdown requested. The status below updates as it happens.',
                 success: true,
             };
+            this.watchState('stop');
         } else {
             this.outcomeBadge = {
                 message: 'Failed to execute RCON shutdown',

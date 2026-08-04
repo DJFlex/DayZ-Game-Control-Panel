@@ -34,6 +34,17 @@ export class Monitor extends IStatefulService {
 
     private $internalServerState: ServerState = ServerState.STOPPED;
 
+    /**
+     * How many consecutive "server is running" observations to ignore while in
+     * STOPPING before accepting that the stop did not happen. Ticks are one
+     * `serverProcessPollIntervall` apart (30s by default), so the default of 3
+     * gives a shutdown ~90s to finish - generous for DayZ saving on exit -
+     * before the manager stops claiming it is stopping.
+     */
+    private static readonly STOPPING_RUNNING_GRACE = 3;
+
+    private stoppingRunningTicks = 0;
+
     public constructor(
         loggerFactory: LoggerFactory,
         private manager: Manager,
@@ -65,9 +76,22 @@ export class Monitor extends IStatefulService {
                 this.$internalServerState === ServerState.STOPPING
             )
         ) {
-            // TODO force resume after this occurs multiple times?
-            return;
+            // A kill leaves the process visible for a tick or two, so ignore the
+            // first few sightings to avoid flapping back to STARTED mid-stop.
+            // But refusing forever is how the manager used to get stuck: a kill
+            // that failed (taskkill without /F is refused by DayZ) left it
+            // reporting STOPPING while the server happily served players, and
+            // nothing could ever clear it short of a manager restart.
+            if (++this.stoppingRunningTicks < Monitor.STOPPING_RUNNING_GRACE) {
+                return;
+            }
+            this.log.log(
+                LogLevel.WARN,
+                'Server still running after a stop was requested - the stop failed. Reporting it as started again.',
+            );
         }
+
+        this.stoppingRunningTicks = 0;
 
         const previousState = this.$internalServerState;
         this.$internalServerState = state;

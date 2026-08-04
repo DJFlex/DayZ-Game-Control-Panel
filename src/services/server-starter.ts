@@ -54,6 +54,30 @@ export class ServerStarter extends IService {
                                 err.stderr,
                             );
                         }
+
+                        // A polite taskkill asks the process to close itself, and
+                        // DayZ refuses ("can only be terminated forcefully").
+                        // We are already past the graceful path here - RCON
+                        // shutdown is what handles that, and it either was not
+                        // connected or was not wanted - so escalate rather than
+                        // report a stop that never happened.
+                        if (!force) {
+                            try {
+                                await this.processes.killProcess(x.ProcessId, true);
+                                this.log.log(
+                                    LogLevel.WARN,
+                                    `Process ${x.ProcessId} refused a normal stop; forced it instead`,
+                                );
+                                return true;
+                            } catch (forceErr) {
+                                this.log.log(
+                                    LogLevel.ERROR,
+                                    `Failed to force kill process ${x.ProcessId}: ${forceErr.status}`,
+                                    forceErr.stdout,
+                                    forceErr.stderr,
+                                );
+                            }
+                        }
                         return false;
                     })();
                 }) ?? [],

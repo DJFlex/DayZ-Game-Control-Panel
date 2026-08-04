@@ -55,11 +55,38 @@ $m-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 }
 .m-stat-label { font-size: 10.5px; font-weight: 700; letter-spacing: .8px; color: $m-muted; }
 .m-stat-val   { font-size: 13.5px; font-weight: 700; color: $m-text;
-    &.ok { color: $m-green; } &.bad { color: $m-red-text; }
+    &.ok { color: $m-green; } &.bad { color: $m-red-text; } &.warn { color: $m-amber; }
 }
+.m-stat-sub { font-size: 11px; color: $m-muted; font-family: $m-mono; }
 .m-dot {
     width: 9px; height: 9px; border-radius: 50%; flex: none;
     &.ok { background: $m-green; } &.bad { background: $m-red-text; }
+    // mid-transition should read as motion, not as a settled state
+    &.pending { background: $m-amber; animation: m-pulse 1.1s ease-in-out infinite; }
+}
+@keyframes m-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .35; }
+}
+
+// ---- "what are we waiting for" strip ----
+.m-awaiting {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 12px;
+    padding: 9px 14px;
+    border-radius: 8px;
+    background: rgba(255, 193, 7, .08);
+    border: 1px solid rgba(255, 193, 7, .35);
+    font-size: 12.5px;
+    color: $m-amber;
+
+    fa-icon { font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .m-dot.pending { animation: none; }
 }
 
 // ---- stop-for-maintenance banner ----

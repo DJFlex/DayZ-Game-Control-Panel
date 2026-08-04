@@ -7,13 +7,24 @@
             {{ outcomeBadge.message }}
         </ngb-alert>
 
+        <!-- What the panel is waiting for, while it is waiting. The status bar
+             used to sit still until the next 30s poll, so an action looked like
+             it had done nothing. -->
+        <div class="m-awaiting" *ngIf="awaiting">
+            <fa-icon [icon]="['fas','spinner']" [classes]="['fa-spin']"></fa-icon>
+            {{ awaitingText }}
+        </div>
+
         <!-- ===== status bar ===== -->
         <div class="m-statusbar">
             <div class="m-stat">
-                <span class="m-dot" [class.ok]="serverOnline" [class.bad]="!serverOnline"></span>
+                <span class="m-dot" [class.ok]="serverOnline" [class.bad]="!serverOnline && !statePending" [class.warn]="statePending"></span>
                 <div>
                     <div class="m-stat-label">SERVER</div>
-                    <div class="m-stat-val" [class.ok]="serverOnline" [class.bad]="!serverOnline">{{ serverStateLabel }}</div>
+                    <div class="m-stat-val" [class.ok]="serverOnline" [class.bad]="!serverOnline && !statePending" [class.warn]="statePending">{{ serverStateLabel }}</div>
+                    <!-- says when this was last confirmed, so a stale reading
+                         cannot pass itself off as the current one -->
+                    <div class="m-stat-sub" *ngIf="stateAt">as of {{ stateAt | date:'HH:mm:ss' }}</div>
                 </div>
             </div>
             <div class="m-stat">

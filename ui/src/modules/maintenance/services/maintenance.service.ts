@@ -34,6 +34,25 @@ export class MaintenanceService {
         ).toPromise();
     }
 
+    /**
+     * The manager does expose the restart lock, so the page can show the real
+     * state rather than remembering what was last clicked on it.
+     * Returns null when the call fails, so callers can leave what they have.
+     */
+    public async isRestartLocked(): Promise<boolean | null> {
+        return this.httpClient.get(
+            `/api/isrestartlocked`,
+            {
+                headers: this.auth.getAuthHeaders(),
+                responseType: 'text',
+                withCredentials: true,
+            },
+        ).pipe(
+            map((x) => String(x).trim().toLowerCase() === 'true'),
+            catchError(() => of(null)),
+        ).toPromise() as Promise<boolean | null>;
+    }
+
     public async updateServer(validate?: boolean): Promise<boolean> {
         return this.execute('updateserver', { validate });
     }
