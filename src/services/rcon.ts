@@ -369,6 +369,11 @@ export class RCON extends IStatefulService {
         }
     }
 
+    /** Whether the DayZ server is actually up, for deciding how loud to be. */
+    private serverIsUp(): boolean {
+        return this.monitor?.serverState === ServerState.STARTED;
+    }
+
     private getRconPassword(): string {
         return (
             this.manager.config?.rconPassword
@@ -592,7 +597,14 @@ export class RCON extends IStatefulService {
         if (!this.keepAlive) return; // mainly for tests
         this.keepAliveInterval = setInterval(() => {
             if ((new Date().getTime() - this.lastResponse) > this.serverTimeoutTime) {
-                this.log.log(LogLevel.ERROR, 'RCON Connection timed out');
+                // Losing RCON while the server is down or booting is the normal
+                // course of a restart, not a fault. Logging it at ERROR made a
+                // healthy manager look broken - every one of these lines in the
+                // logs here turned out to be restart churn.
+                this.log.log(
+                    this.serverIsUp() ? LogLevel.ERROR : LogLevel.INFO,
+                    'RCON Connection timed out',
+                );
                 this.reset();
                 return;
             }
@@ -612,7 +624,11 @@ export class RCON extends IStatefulService {
     // send login packet
     private login(): void {
         this.loginTimeout = setTimeout(/* istanbul ignore next */ () => {
-            this.log.log(LogLevel.WARN, 'Login TimeOut. Reconnecting..');
+            // expected while the server is not up yet - see startKeepAlive
+            this.log.log(
+                this.serverIsUp() ? LogLevel.WARN : LogLevel.INFO,
+                'Login TimeOut. Reconnecting..',
+            );
             this.reset();
         }, this.serverTimeoutTime);
         this.sendPacket(
@@ -645,7 +661,10 @@ export class RCON extends IStatefulService {
             packet.resolve = (data) => {
                 if (command?.length || this.packetDebug) {
                     if (data === undefined || data === null) {
-                        this.log.log(LogLevel.WARN, `Command '${command}' (${packet.sequence}) failed`);
+                        this.log.log(
+                            this.serverIsUp() ? LogLevel.WARN : LogLevel.INFO,
+                            `Command '${command}' (${packet.sequence}) failed`,
+                        );
                     } else if (this.packetDebug) {
                         this.log.log(LogLevel.DEBUG, `Command '${command}' (${packet.sequence}) succeed`);
                     }

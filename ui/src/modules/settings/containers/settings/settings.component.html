@@ -254,6 +254,25 @@
                             </pre>
                         </div>
                     </div>
+                    <!-- Decides whether a stop asks the server to shut down or
+                         kills the process; it was only reachable by editing
+                         server-manager.json by hand. -->
+                    <div class="col-md-12">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="useRconToRestart" [(ngModel)]="config.useRconToRestart"
+                            name="useRconToRestart">
+                            <label class="form-check-label" for="useRconToRestart">Use RCON to restart</label>
+                            <pre class="small text-muted">
+                                {{ schema.properties.useRconToRestart.description }}
+                            </pre>
+                            <div class="s-note">
+                                On: stops go through RCON, so DayZ saves cleanly on the way out.
+                                Off: the process is killed outright, which is faster but loses
+                                anything since the last save. Falls back to killing it if RCON
+                                is not connected at the time.
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-md-12">
                         <div class="form-group">
                             <label for="battleyePath">BattlEye Path</label>

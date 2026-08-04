@@ -57,7 +57,7 @@ const SECTION_KEYS: { [section: string]: string[] } = {
     Discord: ['discordBotToken', 'discordChannels'],
     DayZ: [
         'rconPassword', 'serverPath', 'serverPort', 'serverExe',
-        'experimentalServer', 'battleyePath', 'profilesPath', 'serverCfgPath',
+        'experimentalServer', 'useRconToRestart', 'battleyePath', 'profilesPath', 'serverCfgPath',
     ],
     Mods: ['steamWsMods', 'localMods', 'serverMods', 'workshopId'],
     'DayZ StartFlags': [
@@ -147,6 +147,25 @@ export class SettingsComponent implements OnInit {
      * the form.
      */
     private pristineConfig?: { [key: string]: any };
+
+    /**
+     * Snapshot of just the keys this page edits. Cloning the whole config meant
+     * a multi-megabyte round trip through JSON on every load and save, because
+     * of the base64 images living in mapHost/branding.
+     */
+    private snapshotConfig(): { [key: string]: any } {
+        const source = this.config as any;
+        const snapshot: { [key: string]: any } = {};
+        this.editableKeys.forEach((k) => {
+            if (k in source) {
+                const value = source[k];
+                snapshot[k] = (value && typeof value === 'object')
+                    ? JSON.parse(JSON.stringify(value))
+                    : value;
+            }
+        });
+        return snapshot;
+    }
 
     public get filteredSections(): string[] {
         const f = this.settingFilter.trim().toLowerCase();
@@ -306,15 +325,55 @@ export class SettingsComponent implements OnInit {
 
     // ---- unsaved-change tracking -------------------------------------------
 
-    /** Top-level config keys whose value differs from the loaded config. */
+    /**
+     * Top-level config keys this page can edit, which is what the save bar
+     * should be reporting on.
+     *
+     * It also keeps the diff off the heavyweight keys. A config can carry
+     * megabytes of base64 in `mapHost` (map image) and `branding` (logos,
+     * login background) - one real config here is 12 MB - and neither is
+     * editable from this page. Diffing every top-level key meant stringifying
+     * all of that on every change detection pass, which made typing crawl.
+     */
+    private get editableKeys(): string[] {
+        const keys = new Set<string>(['serverCfg']);
+        Object.keys(SECTION_KEYS).forEach(
+            (section) => SECTION_KEYS[section].forEach((k) => keys.add(k)),
+        );
+        return Array.from(keys);
+    }
+
+    /**
+     * Cheap value comparison: primitives compare directly, and only objects and
+     * arrays pay for a stringify.
+     */
+    private differs(a: any, b: any): boolean {
+        if (a === b) {
+            return false;
+        }
+        if (a === null || b === null || a === undefined || b === undefined) {
+            return true;
+        }
+        const type = typeof a;
+        if (type !== typeof b) {
+            return true;
+        }
+        if (type !== 'object') {
+            return a !== b;
+        }
+        return JSON.stringify(a) !== JSON.stringify(b);
+    }
+
+    /** Config keys whose value differs from what the server last gave us. */
     public get changedKeys(): string[] {
         const before = this.pristineConfig;
         const after = this.config as any;
         if (!before || !after) {
             return [];
         }
-        return Array.from(new Set([...Object.keys(before), ...Object.keys(after)]))
-            .filter((k) => JSON.stringify(before[k]) !== JSON.stringify(after[k]))
+        return this.editableKeys
+            .filter((k) => (k in before) || (k in after))
+            .filter((k) => this.differs(before[k], after[k]))
             .sort();
     }
 
@@ -367,7 +426,7 @@ export class SettingsComponent implements OnInit {
             () => {
                 this.loading = false;
                 // what we just sent is the new baseline
-                this.pristineConfig = JSON.parse(JSON.stringify(this.config));
+                this.pristineConfig = this.snapshotConfig();
                 this.outcomeBadge = {
                     message: 'Successfully updated config',
                     success: true,
@@ -410,7 +469,7 @@ export class SettingsComponent implements OnInit {
 
                 // baseline for the save bar, taken after the normalising above
                 // so those rewrites do not read as unsaved edits
-                this.pristineConfig = JSON.parse(JSON.stringify(this.config));
+                this.pristineConfig = this.snapshotConfig();
 
                 this.loading = false;
             },
