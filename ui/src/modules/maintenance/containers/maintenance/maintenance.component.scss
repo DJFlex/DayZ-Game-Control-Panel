@@ -103,6 +103,12 @@ $m-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
         border-color: rgba(224, 164, 26, .5);
         background: rgba(224, 164, 26, .06);
     }
+
+    // mid-action: amber like the other transitional states on this page
+    &.pending {
+        border-color: rgba(255, 193, 7, .5);
+        background: rgba(255, 193, 7, .07);
+    }
 }
 .m-maint-txt { flex: 1; min-width: 0; }
 .m-maint-title { font-size: 14.5px; font-weight: 700; }

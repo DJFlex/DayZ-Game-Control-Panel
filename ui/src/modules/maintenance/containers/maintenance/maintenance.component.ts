@@ -142,10 +142,69 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     /** Read the real restart-lock state instead of assuming it. */
     public async refreshLocks(): Promise<void> {
         const locked = await this.maintenance.isRestartLocked();
-        if (locked !== null) {
-            this.restartLocked = locked;
+        if (locked === null) {
+            return;
+        }
+        this.restartLocked = locked;
+
+        // Never derive this mid-action. Straight after a stop request the
+        // server is still Online, so this would flip the card back to
+        // "Stop for Maintenance" while it was busy stopping.
+        if (!this.awaiting) {
             this.inMaintenance = locked && !this.serverOnline;
         }
+    }
+
+    /** True while a stop or resume is still playing out. */
+    public get maintenancePending(): boolean {
+        return this.maintenanceBusy || this.awaiting === 'stop' || this.awaiting === 'start';
+    }
+
+    /**
+     * Which action the button offers. During a stop it stays the stop button
+     * (reading "Stopping…") rather than flipping to Resume before the server
+     * has actually gone.
+     */
+    public get showResumeButton(): boolean {
+        if (this.awaiting === 'stop') {
+            return false;
+        }
+        if (this.awaiting === 'start') {
+            return true;
+        }
+        return this.showResume;
+    }
+
+    public get maintenanceButtonLabel(): string {
+        if (this.awaiting === 'stop') {
+            return 'Stopping…';
+        }
+        if (this.awaiting === 'start') {
+            return 'Resuming…';
+        }
+        if (this.maintenanceBusy) {
+            return this.showResume ? 'Resuming…' : 'Stopping…';
+        }
+        return this.showResume ? 'Resume Server' : 'Stop for Maintenance';
+    }
+
+    public get maintenanceTitle(): string {
+        if (this.awaiting === 'stop') {
+            return 'Stopping the server…';
+        }
+        if (this.awaiting === 'start') {
+            return 'Starting the server back up…';
+        }
+        return this.showResume ? 'Server is stopped for maintenance' : 'Making changes?';
+    }
+
+    public get maintenanceSub(): string {
+        if (this.awaiting) {
+            return this.awaitingText;
+        }
+        return this.showResume
+            ? 'It stays off until you resume.'
+            : 'Stops the server safely (locks restarts + shuts down) so it stays off while you work.';
     }
 
     /** What the panel is currently waiting for, in plain words. */

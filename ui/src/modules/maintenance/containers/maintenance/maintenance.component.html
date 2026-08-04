@@ -9,8 +9,9 @@
 
         <!-- What the panel is waiting for, while it is waiting. The status bar
              used to sit still until the next 30s poll, so an action looked like
-             it had done nothing. -->
-        <div class="m-awaiting" *ngIf="awaiting">
+             it had done nothing. Stop and resume say this on their own card, so
+             only the restart action needs the strip. -->
+        <div class="m-awaiting" *ngIf="awaiting === 'restart'">
             <fa-icon [icon]="['fas','spinner']" [classes]="['fa-spin']"></fa-icon>
             {{ awaitingText }}
         </div>
@@ -65,16 +66,21 @@
         </div>
 
         <!-- ===== stop for maintenance ===== -->
-        <div class="m-maint" [class.active]="showResume">
+        <!-- The card and its button track the action while it plays out, rather
+             than flicking back to the idle wording the moment the request is
+             acknowledged. -->
+        <div class="m-maint" [class.active]="showResume" [class.pending]="maintenancePending">
             <div class="m-maint-txt">
-                <div class="m-maint-title">{{ showResume ? 'Server is stopped for maintenance' : 'Making changes?' }}</div>
-                <div class="m-maint-sub">{{ showResume ? 'It stays off until you resume.' : 'Stops the server safely (locks restarts + shuts down) so it stays off while you work.' }}</div>
+                <div class="m-maint-title">{{ maintenanceTitle }}</div>
+                <div class="m-maint-sub">{{ maintenanceSub }}</div>
             </div>
-            <button *ngIf="!showResume" class="m-btn m-btn--danger m-btn--lg" [disabled]="maintenanceBusy" (click)="stopForMaintenance()">
-                <fa-icon [icon]="['fas','power-off']"></fa-icon>{{ maintenanceBusy ? 'Stopping...' : 'Stop for Maintenance' }}
-            </button>
-            <button *ngIf="showResume" class="m-btn m-btn--primary m-btn--lg" [disabled]="maintenanceBusy" (click)="resumeFromMaintenance()">
-                <fa-icon [icon]="['fas','check']"></fa-icon>{{ maintenanceBusy ? 'Resuming...' : 'Resume Server' }}
+            <button class="m-btn m-btn--lg"
+                    [class.m-btn--danger]="!showResumeButton"
+                    [class.m-btn--primary]="showResumeButton"
+                    [disabled]="maintenancePending"
+                    (click)="showResumeButton ? resumeFromMaintenance() : stopForMaintenance()">
+                <fa-icon [icon]="maintenancePending ? ['fas','spinner'] : (showResumeButton ? ['fas','check'] : ['fas','power-off'])"
+                         [classes]="maintenancePending ? ['fa-spin'] : []"></fa-icon>{{ maintenanceButtonLabel }}
             </button>
         </div>
 
