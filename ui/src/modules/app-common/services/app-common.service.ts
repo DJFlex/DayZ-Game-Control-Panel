@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { LogType, LogTypeEnum, MetricType, MetricTypeEnum, MetricWrapper, ServerInfo, SystemReport, isSameServerInfo } from '../models';
+import { LogType, LogTypeEnum, MetricType, MetricTypeEnum, MetricWrapper, ServerInfo, SystemReport, WorkshopSearchResult, isSameServerInfo } from '../models';
 import { AuthService } from '../../auth/services/auth.service';
 import Chart from 'chart.js';
 import { BehaviorSubject, Observable, of, Subject, Subscription, timer } from 'rxjs';
@@ -307,6 +307,38 @@ export class AppCommonService {
             },
         ).pipe(
             catchError((e) => processError(e)),
+        );
+    }
+
+    /**
+     * Workshop search, proxied by the manager so the Steam API key stays on the
+     * server. Resolves to a request-failed result rather than throwing, so the
+     * page can show why nothing came back.
+     */
+    public searchWorkshop(params: {
+        search?: string;
+        queryType?: number;
+        days?: number;
+        page?: number;
+    }): Observable<WorkshopSearchResult> {
+        const query: { [key: string]: string } = {};
+        if (params.search) { query['search'] = params.search; }
+        if (params.queryType !== undefined) { query['queryType'] = String(params.queryType); }
+        if (params.days !== undefined) { query['days'] = String(params.days); }
+        if (params.page !== undefined) { query['page'] = String(params.page); }
+
+        return this.httpClient.get<WorkshopSearchResult>(
+            `/api/workshopsearch`,
+            {
+                headers: this.getAuthHeaders(),
+                withCredentials: true,
+                params: query,
+            },
+        ).pipe(
+            catchError((e) => {
+                console.error('Workshop search failed', e);
+                return of({ items: [], total: 0, error: 'request-failed' } as WorkshopSearchResult);
+            }),
         );
     }
 

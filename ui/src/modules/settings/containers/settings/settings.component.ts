@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Config, DiscordChannelType, WorkshopMod } from '../../../app-common/models';
+import { Config, DiscordChannelType, WorkshopMod, WorkshopSearchItem } from '../../../app-common/models';
 import { AppCommonService } from '../../../app-common/services/app-common.service';
 import * as commentJson from 'comment-json';
 
@@ -66,6 +66,7 @@ const SECTION_KEYS: { [section: string]: string[] } = {
     ],
     Backups: ['backupPath', 'backupMaxAge'],
     Steam: [
+        'steamApiKey',
         'steamUsername', 'steamPassword', 'steamCmdPath', 'steamWorkshopPath',
         'steamMetaPath', 'updateServerOnStartup', 'updateServerBeforeServerStart',
         'validateServerAfterUpdate', 'updateModsOnStartup', 'updateModsBeforeServerStart',
@@ -134,7 +135,7 @@ export class SettingsComponent implements OnInit {
     public readonly startNumbers = START_NUMBERS;
 
     /** Mods sub-tab. */
-    public modTab: 'workshop' | 'local' | 'server' = 'workshop';
+    public modTab: 'workshop' | 'local' | 'server' | 'browse' = 'workshop';
     public modIdInput = '';
 
     /**
@@ -321,6 +322,33 @@ export class SettingsComponent implements OnInit {
             return value;
         }
         return /[?&]id=(\d+)/.exec(value)?.[1];
+    }
+
+    /** Workshop ids already listed, handed to the browser so it can mark them. */
+    public get addedModIds(): string[] {
+        return (this.config?.steamWsMods || []).map((m) => this.modId(m));
+    }
+
+    /**
+     * Adds a mod found in the browser to the list. It is not installed by this:
+     * it still needs Save Changes and an Update Mods run, and the message says
+     * so rather than letting the button imply otherwise.
+     */
+    public addFromWorkshop(item: WorkshopSearchItem): void {
+        if (this.addedModIds.includes(item.publishedfileid)) {
+            return;
+        }
+        if (!this.config.steamWsMods) {
+            this.config.steamWsMods = [];
+        }
+        this.config.steamWsMods.push({
+            workshopId: item.publishedfileid,
+            name: item.title,
+        });
+        this.outcomeBadge = {
+            success: true,
+            message: `Added ${item.title}. Save Changes, then run Update Mods on Maintenance to download it.`,
+        };
     }
 
     // ---- unsaved-change tracking -------------------------------------------

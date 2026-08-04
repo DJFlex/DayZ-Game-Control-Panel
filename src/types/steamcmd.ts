@@ -67,6 +67,64 @@ export interface SteamApiWorkshopItemDetailsResponse {
     };
 }
 
+/* eslint-disable @typescript-eslint/naming-convention */
+
+/** How the Workshop search orders results; values are Steam's query_type. */
+export enum WorkshopQueryType {
+    RankedByVote = 0,
+    RankedByPublicationDate = 1,
+    RankedByTrend = 3,
+    RankedByTextSearch = 12,
+}
+
+export interface WorkshopSearchParams {
+    search?: string;
+    queryType?: number;
+    /** Trend window in days; only meaningful for RankedByTrend. */
+    days?: number;
+    page?: number;
+    perPage?: number;
+}
+
+/** A single search hit, trimmed to what the panel shows. */
+export interface WorkshopSearchItem {
+    publishedfileid: string;
+    title: string;
+    description: string;
+    previewUrl?: string;
+    creator?: string;
+    timeUpdated?: number;
+    subscriptions?: number;
+    fileSize?: string;
+}
+
+export interface WorkshopSearchResult {
+    items: WorkshopSearchItem[];
+    total: number;
+    /** Set when the search could not run at all. */
+    error?: 'no-api-key' | 'request-failed';
+}
+
+/** Raw shape of IPublishedFileService/QueryFiles, as far as we use it. */
+export interface SteamApiQueryFilesResponse {
+    response?: {
+        total?: number;
+        publishedfiledetails?: {
+            publishedfileid: string;
+            title?: string;
+            short_description?: string;
+            file_description?: string;
+            preview_url?: string;
+            creator?: string;
+            time_updated?: number;
+            file_size?: string;
+            subscriptions?: number;
+        }[];
+    };
+}
+
+/* eslint-enable @typescript-eslint/naming-convention */
+
 export interface SteamCmdEvent {
     type: string;
 }

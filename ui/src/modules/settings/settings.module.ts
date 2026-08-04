@@ -9,6 +9,7 @@ import { AppCommonModule } from '../app-common/app-common.module';
 import { NavigationModule } from '../navigation/navigation.module';
 import { PlayersModule } from '../players/players.module';
 import { SettingsComponent } from './containers/settings/settings.component';
+import { WorkshopBrowserComponent } from './components/workshop-browser/workshop-browser.component';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
@@ -29,9 +30,11 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
     ],
     declarations: [
         SettingsComponent,
+        WorkshopBrowserComponent,
     ],
     exports: [
         SettingsComponent,
+        WorkshopBrowserComponent,
     ],
 })
 export class SettingsModule {}

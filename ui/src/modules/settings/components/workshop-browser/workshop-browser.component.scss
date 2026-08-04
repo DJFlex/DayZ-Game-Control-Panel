@@ -1,0 +1,123 @@
+@import 'styles/variables.scss';
+
+// Workshop search results. Light defaults with the dark theme restated behind
+// the theme gate, same as the rest of the Settings surfaces.
+
+$ws-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+
+:host { display: block; }
+
+.ws-bar {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+.ws-input {
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 6px;
+    padding: 7px 10px;
+    color: inherit;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+    min-width: 0;
+
+    &:focus { border-color: var(--brand-primary); }
+}
+.ws-search { flex: 1 1 260px; }
+
+.ws-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+    padding: 11px 14px;
+    border-radius: 8px;
+    background: rgba(255, 193, 7, .08);
+    border: 1px solid rgba(255, 193, 7, .35);
+    font-size: 12.5px;
+    line-height: 1.5;
+
+    fa-icon { color: #b8860b; font-size: 12px; margin-top: 2px; }
+
+    &.bad {
+        background: rgba(220, 53, 69, .08);
+        border-color: rgba(220, 53, 69, .35);
+        fa-icon { color: #b02a37; }
+    }
+}
+.ws-sub { color: #6c757d; margin-top: 4px; }
+
+.ws-empty {
+    padding: 26px 4px;
+    color: #6c757d;
+    font-size: 12.5px;
+}
+
+.ws-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 14px;
+}
+.ws-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid rgba(0, 0, 0, .15);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.ws-thumb {
+    height: 130px;
+    background: rgba(127, 127, 127, .12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+    fa-icon { font-size: 22px; color: #adb5bd; }
+}
+.ws-body { flex: 1; padding: 10px 12px; min-width: 0; }
+.ws-title {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 3px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ws-meta { font-size: 11px; color: #6c757d; margin-bottom: 6px; }
+.ws-mono { font-family: $ws-mono; font-size: 11.5px; color: #6c757d; }
+.ws-desc {
+    font-size: 11.5px;
+    color: #6c757d;
+    line-height: 1.45;
+    // keeps every card the same height whatever the blurb length
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.ws-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid rgba(0, 0, 0, .1);
+}
+.ws-link { font-size: 11.5px; }
+.ws-pager { display: flex; align-items: center; gap: 12px; }
+
+:host-context(html[data-theme='dark']) {
+    .ws-input { background: #2d333d; border-color: #3a414d; color: #e6e8eb; }
+    .ws-card { border-color: #3a414d; }
+    .ws-thumb { background: #2d333d; }
+    .ws-meta, .ws-desc, .ws-mono, .ws-empty, .ws-sub { color: #9aa2ad; }
+    .ws-foot { border-top-color: #3a414d; }
+    .ws-note fa-icon { color: #ffc107; }
+    .ws-note.bad fa-icon { color: #f16b79; }
+}

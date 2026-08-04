@@ -1,0 +1,83 @@
+<div class="ws-bar">
+    <input type="text" class="ws-input ws-search" placeholder="Search DayZ Workshop&hellip;"
+           name="wsSearch" [(ngModel)]="search" [ngModelOptions]="{standalone: true}"
+           (keyup)="$event.key === 'Enter' ? runSearch(1) : null" />
+
+    <!-- a text search is ranked by relevance, so sorting is only for browsing -->
+    <select class="ws-input" name="wsSort" [(ngModel)]="sort"
+            [ngModelOptions]="{standalone: true}" [disabled]="!!search.trim()">
+        <option *ngFor="let o of sortOptions" [ngValue]="o.value">{{ o.label }}</option>
+    </select>
+
+    <select class="ws-input" name="wsDays" [(ngModel)]="days"
+            [ngModelOptions]="{standalone: true}" *ngIf="showDays">
+        <option *ngFor="let o of dayOptions" [ngValue]="o.value">{{ o.label }}</option>
+    </select>
+
+    <button type="button" class="btn btn-sm btn-primary" (click)="runSearch(1)" [disabled]="busy">
+        <fa-icon class="mr-1" *ngIf="busy" [icon]='["fas", "spinner"]' [classes]="['fa-spin']"></fa-icon>
+        {{ busy ? 'Searching…' : 'Search' }}
+    </button>
+</div>
+
+<!-- Search is the only part that needs a key; say how to get one rather than
+     just failing. -->
+<div class="ws-note" *ngIf="noApiKey">
+    <fa-icon [icon]='["fas", "exclamation-triangle"]'></fa-icon>
+    <div>
+        <b>Workshop search needs a Steam Web API key.</b>
+        Get one free at
+        <a href="https://steamcommunity.com/dev/apikey" target="_blank" rel="noopener">steamcommunity.com/dev/apikey</a>
+        (any domain name will do), then paste it into the <b>Steam</b> section and save.
+        <div class="ws-sub">Adding mods by ID and updating them works without a key.</div>
+    </div>
+</div>
+
+<div class="ws-note bad" *ngIf="failed">
+    <fa-icon [icon]='["fas", "exclamation-triangle"]'></fa-icon>
+    <div>Steam did not answer. Check the key is valid and that the manager can reach the internet.</div>
+</div>
+
+<div class="ws-empty" *ngIf="!result && !busy">
+    Search for a mod, or hit Search to see what is popular right now.
+</div>
+
+<div class="ws-empty" *ngIf="result && !result.error && !result.items.length && !busy">
+    Nothing matched that.
+</div>
+
+<div class="ws-grid" *ngIf="result?.items?.length">
+    <div class="ws-card" *ngFor="let item of result!.items">
+        <div class="ws-thumb">
+            <img *ngIf="item.previewUrl" [src]="item.previewUrl" [alt]="item.title" loading="lazy" />
+            <fa-icon *ngIf="!item.previewUrl" [icon]='["fas", "map"]'></fa-icon>
+        </div>
+        <div class="ws-body">
+            <div class="ws-title" [title]="item.title">{{ item.title }}</div>
+            <div class="ws-meta">
+                <span class="ws-mono">{{ item.publishedfileid }}</span>
+                <span *ngIf="item.subscriptions"> &middot; {{ item.subscriptions | number }} subs</span>
+                <span *ngIf="item.timeUpdated"> &middot; {{ (item.timeUpdated * 1000) | date:'dd/MM/yy' }}</span>
+            </div>
+            <div class="ws-desc">{{ item.description }}</div>
+        </div>
+        <div class="ws-foot">
+            <a class="ws-link" [href]="workshopUrl(item.publishedfileid)" target="_blank" rel="noopener">Workshop page</a>
+            <button type="button" class="btn btn-sm btn-secondary" *ngIf="isAdded(item.publishedfileid)" disabled>
+                <fa-icon class="mr-1" [icon]='["fas", "check"]'></fa-icon>In list
+            </button>
+            <button type="button" class="btn btn-sm btn-primary" *ngIf="!isAdded(item.publishedfileid)"
+                    (click)="add.emit(item)">
+                <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="ws-pager" *ngIf="result?.items?.length">
+    <button type="button" class="btn btn-sm btn-secondary"
+            [disabled]="page <= 1 || busy" (click)="runSearch(page - 1)">Previous</button>
+    <span class="ws-mono">page {{ page }} of {{ totalPages() }}</span>
+    <button type="button" class="btn btn-sm btn-secondary"
+            [disabled]="page >= totalPages() || busy" (click)="runSearch(page + 1)">Next</button>
+</div>

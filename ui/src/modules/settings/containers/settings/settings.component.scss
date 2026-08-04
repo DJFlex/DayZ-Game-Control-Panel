@@ -385,6 +385,13 @@ label.s-flag { cursor: pointer; }
     .s-switch-knob { background: #aeb7c0; }
     .s-switch.on .s-switch-knob { background: #fff; }
 
+    .s-wscard { border-color: #3a414d; }
+    .s-wsthumb { background: #2d333d; }
+    .s-wsmeta, .s-wsdesc { color: #9aa2ad; }
+    .s-wsfoot { border-top-color: #3a414d; }
+    .s-wsnote fa-icon { color: #ffc107; }
+    .s-wsnote.bad fa-icon { color: #f16b79; }
+
     .s-adm { border-bottom-color: #2d333d; }
     .s-adm-head { border-bottom-color: #3a414d; color: #9aa2ad; }
     .s-adm-level {

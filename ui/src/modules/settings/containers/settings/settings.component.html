@@ -326,6 +326,10 @@
                             (click)="modTab = 'server'">
                         Server Mods <span class="s-modcount">{{ (config.serverMods || []).length }}</span>
                     </button>
+                    <button type="button" class="s-modtab" [class.on]="modTab === 'browse'"
+                            (click)="modTab = 'browse'">
+                        <fa-icon class="mr-1" [icon]='["fas", "search"]'></fa-icon>Browse Workshop
+                    </button>
 
                     <div class="s-modadd" *ngIf="modTab === 'workshop'">
                         <input type="text" class="s-input" placeholder="Workshop ID or URL&hellip;"
@@ -393,6 +397,18 @@
                     <button type="button" class="btn btn-sm btn-secondary" (click)="addLocalMod()">
                         <fa-icon class="mr-1" [icon]='["fas", "plus-circle"]'></fa-icon>Add Path
                     </button>
+                </div>
+
+                <!-- Browse the Steam Workshop -->
+                <div class="s-modlist" *ngIf="modTab === 'browse'">
+                    <sb-workshop-browser [addedIds]="addedModIds" (add)="addFromWorkshop($event)"></sb-workshop-browser>
+
+                    <div class="s-modnote">
+                        <fa-icon [icon]='["fas", "info"]'></fa-icon>
+                        Adding puts the mod in your list &mdash; it is downloaded when you
+                        <b>Save Changes</b> and then run <b>Update Mods</b> on
+                        <a routerLink="/dashboard/maintenance">Maintenance</a>.
+                    </div>
                 </div>
 
                 <!-- Server mods -->
@@ -472,6 +488,20 @@
                         <strong>Steam</strong>
                         <hr>
                 <div class="row spaced">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="steamApiKey">Steam Web API Key</label>
+                            <pre class="small text-muted">
+                                {{ schema.properties.steamApiKey.description }}
+                            </pre>
+                            <input type="text" class="form-control" id="steamApiKey"
+                                [(ngModel)]="config.steamApiKey" name="steamApiKey">
+                            <div class="s-note">
+                                Only used by <b>Browse Workshop</b> on the Mods page. Everything
+                                else about mods works without it.
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="steamUsername">Steam User</label>

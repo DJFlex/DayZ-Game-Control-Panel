@@ -305,6 +305,25 @@ export class Interface extends IService {
                     validate: params?.validate,
                 }),
             })],
+            // Workshop search for the Mods page. Proxied rather than called from
+            // the browser so the Steam API key never leaves the server.
+            ['workshopsearch', RequestTemplate.build({
+                method: 'get',
+                level: 'manage',
+                disableDiscord: true,
+                params: [
+                    { name: 'search', optional: true, location: 'query' },
+                    { name: 'queryType', optional: true, location: 'query', parse: parseNumber },
+                    { name: 'days', optional: true, location: 'query', parse: parseNumber },
+                    { name: 'page', optional: true, location: 'query', parse: parseNumber },
+                ],
+                action: (req, params) => this.steamCmd.searchWorkshop({
+                    search: params?.search,
+                    queryType: params?.queryType,
+                    days: params?.days,
+                    page: params?.page,
+                }),
+            })],
             ['backup', RequestTemplate.build({
                 method: 'post',
                 level: 'manage',

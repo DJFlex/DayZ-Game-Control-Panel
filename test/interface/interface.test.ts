@@ -624,6 +624,21 @@ describe('Test Interface', () => {
         expect(steamCmd.updateServer.called).to.be.true;
     });
 
+    it('execute-workshopSearch', async () => {
+        steamCmd.searchWorkshop.resolves({ items: [], total: 0 });
+        const handler = injector.resolve(Interface);
+        const request = {
+            resource: 'workshopsearch',
+            user: 'admin',
+            query: { search: 'trader', page: '2' },
+        } as any as Request;
+        const response = await handler.execute(request);
+
+        expect(response.status).to.equal(200);
+        expect(steamCmd.searchWorkshop.called).to.be.true;
+        expect(steamCmd.searchWorkshop.firstCall.args[0].search).to.equal('trader');
+    });
+
     it('execute-backup', async () => {
         const handler = injector.resolve(Interface);
         const request = {

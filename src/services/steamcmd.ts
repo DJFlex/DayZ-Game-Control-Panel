@@ -12,7 +12,7 @@ import { FSAPI, HTTPSAPI, InjectionTokens } from '../util/apis';
 import { Downloader } from './download';
 import { merge } from '../util/merge';
 import { request } from '../util/request';
-import { DAYZ_APP_ID, DAYZ_EXPERIMENTAL_SERVER_APP_ID, DAYZ_SERVER_APP_ID, LocalMetaData, PublishedFileDetail, SteamApiWorkshopItemDetailsResponse, SteamCmdAppUpdateProgressEvent, SteamCmdEvent, SteamCmdEventListener, SteamCmdExitEvent, SteamCmdModUpdateProgressEvent, SteamCmdOutputEvent, SteamCmdRetryEvent, SteamExitCodes } from '../types/steamcmd';
+import { DAYZ_APP_ID, DAYZ_EXPERIMENTAL_SERVER_APP_ID, DAYZ_SERVER_APP_ID, LocalMetaData, PublishedFileDetail, SteamApiQueryFilesResponse, SteamApiWorkshopItemDetailsResponse, SteamCmdAppUpdateProgressEvent, SteamCmdEvent, SteamCmdEventListener, SteamCmdExitEvent, SteamCmdModUpdateProgressEvent, SteamCmdOutputEvent, SteamCmdRetryEvent, SteamExitCodes, WorkshopQueryType, WorkshopSearchParams, WorkshopSearchResult } from '../types/steamcmd';
 import { EventBus } from '../control/event-bus';
 import { InternalEventTypes } from '../types/events';
 
@@ -155,6 +155,88 @@ export class SteamMetaData extends IService {
         } catch (e) {
             this.log.log(LogLevel.WARN, `Failed to request workshop details of ${ids}`, e);
             return null;
+        }
+    }
+
+    /**
+     * Search the DayZ Workshop.
+     *
+     * Unlike GetPublishedFileDetails, which only looks up ids we already know,
+     * QueryFiles needs a Steam Web API key. Without one configured the search is
+     * simply unavailable - reported as such rather than as a failure - and
+     * everything else about mods keeps working.
+     */
+    public async searchWorkshop(params: WorkshopSearchParams): Promise<WorkshopSearchResult> {
+        const apiKey = this.manager.config?.steamApiKey;
+        if (!apiKey) {
+            return { items: [], total: 0, error: 'no-api-key' };
+        }
+
+        const perPage = Math.min(Math.max(params.perPage || 30, 1), 100);
+        const page = Math.max(params.page || 1, 1);
+        const search = (params.search || '').trim();
+
+        // a text search that is not ranked by text relevance returns junk
+        const queryType = search
+            ? WorkshopQueryType.RankedByTextSearch
+            : (params.queryType ?? WorkshopQueryType.RankedByTrend);
+
+        const query = new URLSearchParams();
+        query.append('key', apiKey);
+        query.append('appid', DAYZ_APP_ID);
+        query.append('query_type', `${queryType}`);
+        query.append('page', `${page}`);
+        query.append('numperpage', `${perPage}`);
+        query.append('return_details', 'true');
+        query.append('return_previews', 'true');
+        query.append('return_short_description', 'true');
+        query.append('return_vote_data', 'true');
+        // 0 = ready-to-use items, not collections or screenshots
+        query.append('filetype', '0');
+        if (search) {
+            query.append('search_text', search);
+        }
+        if (queryType === WorkshopQueryType.RankedByTrend && params.days) {
+            query.append('days', `${params.days}`);
+        }
+
+        try {
+            const response = await request(
+                this.https,
+                `https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/?${query.toString()}`,
+                { method: 'GET' },
+            );
+
+            if (response.statusCode !== 200) {
+                this.log.log(
+                    LogLevel.WARN,
+                    // never log the query string - it carries the API key
+                    `Workshop search failed with http ${response.statusCode} (${response.statusMessage})`,
+                );
+                return { items: [], total: 0, error: 'request-failed' };
+            }
+
+            const parsed = JSON.parse(response.body) as SteamApiQueryFilesResponse;
+            const details = parsed?.response?.publishedfiledetails ?? [];
+
+            return {
+                total: parsed?.response?.total ?? details.length,
+                items: details
+                    .filter((x) => !!x?.publishedfileid)
+                    .map((x) => ({
+                        publishedfileid: x.publishedfileid,
+                        title: x.title || x.publishedfileid,
+                        description: x.short_description || x.file_description || '',
+                        previewUrl: x.preview_url,
+                        creator: x.creator,
+                        timeUpdated: x.time_updated,
+                        subscriptions: x.subscriptions,
+                        fileSize: x.file_size,
+                    })),
+            };
+        } catch (e) {
+            this.log.log(LogLevel.WARN, 'Workshop search failed', e);
+            return { items: [], total: 0, error: 'request-failed' };
         }
     }
 
@@ -737,6 +819,15 @@ export class SteamCMD extends IService {
         } as SteamCmdExitEvent);
 
         return true;
+    }
+
+    /**
+     * Workshop search, forwarded to the metadata service. Exposed here so the
+     * interface layer keeps talking to one steam service, as it already does
+     * for mod updates.
+     */
+    public async searchWorkshop(params: WorkshopSearchParams): Promise<WorkshopSearchResult> {
+        return this.metaData.searchWorkshop(params);
     }
 
     public async updateAllMods(opts?: {

@@ -181,6 +181,121 @@ describe('Test class SteamMetaData', () => {
         expect(response).not.to.include('4321');
     });
 
+    it('SteamMetaData-searchWorkshop-no-api-key', async () => {
+        manager.config = {} as Partial<Config> as Config;
+
+        const steamMeta = injector.resolve(SteamMetaData);
+
+        const result = await steamMeta.searchWorkshop({ search: 'trader' });
+
+        expect(result.error).to.equal('no-api-key');
+        expect(result.items).to.be.empty;
+        expect(result.total).to.equal(0);
+    });
+
+    it('SteamMetaData-searchWorkshop', async () => {
+        manager.config = {
+            steamApiKey: 'test-key',
+        } as Partial<Config> as Config;
+
+        const requestStub = ImportMock.mockFunction(requestModule, 'request');
+        requestStub.resolves({
+            statusCode: 200,
+            body: JSON.stringify({
+                response: {
+                    total: 2,
+                    publishedfiledetails: [
+                        {
+                            publishedfileid: '1559212036',
+                            title: 'CF',
+                            short_description: 'Community Framework',
+                            preview_url: 'https://example.invalid/cf.jpg',
+                            time_updated: 1000,
+                            subscriptions: 42,
+                        },
+                        // no id: dropped rather than rendered as a blank card
+                        {
+                            title: 'broken entry',
+                        },
+                    ],
+                },
+            }),
+        });
+
+        const steamMeta = injector.resolve(SteamMetaData);
+
+        const result = await steamMeta.searchWorkshop({ search: 'framework', page: 2 });
+
+        expect(result.error).to.be.undefined;
+        expect(result.total).to.equal(2);
+        expect(result.items.length).to.equal(1);
+        expect(result.items[0].publishedfileid).to.equal('1559212036');
+        expect(result.items[0].title).to.equal('CF');
+        expect(result.items[0].description).to.equal('Community Framework');
+
+        // a text search must be ranked by text relevance, and the key and app id
+        // have to be on the request
+        const url = requestStub.firstCall.args[1] as string;
+        expect(url).to.include('search_text=framework');
+        expect(url).to.include('query_type=12');
+        expect(url).to.include(`appid=${DAYZ_APP_ID}`);
+        expect(url).to.include('key=test-key');
+        expect(url).to.include('page=2');
+    });
+
+    it('SteamMetaData-searchWorkshop-browse-defaults-to-trend', async () => {
+        manager.config = {
+            steamApiKey: 'test-key',
+        } as Partial<Config> as Config;
+
+        const requestStub = ImportMock.mockFunction(requestModule, 'request');
+        requestStub.resolves({
+            statusCode: 200,
+            body: JSON.stringify({ response: { total: 0, publishedfiledetails: [] } }),
+        });
+
+        const steamMeta = injector.resolve(SteamMetaData);
+
+        const result = await steamMeta.searchWorkshop({ days: 7 });
+
+        expect(result.items).to.be.empty;
+        const url = requestStub.firstCall.args[1] as string;
+        expect(url).to.include('query_type=3');
+        expect(url).to.include('days=7');
+        expect(url).not.to.include('search_text');
+    });
+
+    it('SteamMetaData-searchWorkshop-http-error', async () => {
+        manager.config = {
+            steamApiKey: 'test-key',
+        } as Partial<Config> as Config;
+
+        const requestStub = ImportMock.mockFunction(requestModule, 'request');
+        requestStub.resolves({ statusCode: 403, statusMessage: 'Forbidden', body: '' });
+
+        const steamMeta = injector.resolve(SteamMetaData);
+
+        const result = await steamMeta.searchWorkshop({});
+
+        expect(result.error).to.equal('request-failed');
+        expect(result.items).to.be.empty;
+    });
+
+    it('SteamMetaData-searchWorkshop-throws', async () => {
+        manager.config = {
+            steamApiKey: 'test-key',
+        } as Partial<Config> as Config;
+
+        const requestStub = ImportMock.mockFunction(requestModule, 'request');
+        requestStub.rejects(new Error('network down'));
+
+        const steamMeta = injector.resolve(SteamMetaData);
+
+        const result = await steamMeta.searchWorkshop({});
+
+        expect(result.error).to.equal('request-failed');
+    });
+
 });
 
 describe('Test class SteamCMD', () => {
@@ -811,6 +926,17 @@ describe('Test class SteamCMD', () => {
         expect(res).to.be.false;
         expect(spawnStub.callCount).to.be.greaterThan(1);
 
+    });
+
+    it('SteamCmd-searchWorkshop', async () => {
+        steamMeta.searchWorkshop.resolves({ items: [], total: 0 });
+
+        const steamCmd = injector.resolve(SteamCMD);
+
+        const res = await steamCmd.searchWorkshop({ search: 'trader' });
+
+        expect(res.total).to.equal(0);
+        expect(steamMeta.searchWorkshop.firstCall.args[0].search).to.equal('trader');
     });
 
 });

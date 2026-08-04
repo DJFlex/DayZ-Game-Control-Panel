@@ -980,6 +980,17 @@ export class Config {
     public steamMetaPath: string = 'SteamMeta';
 
     /**
+     * Steam Web API key, used only to search the Workshop from the Mods page.
+     *
+     * Get one (free) at https://steamcommunity.com/dev/apikey - any domain name
+     * will do, Steam does not check it for this purpose.
+     *
+     * Leave empty to turn Workshop search off. Everything else - downloading and
+     * updating the mods you already list - works without it.
+     */
+    public steamApiKey: string = '';
+
+    /**
      * List of Mod IDs (workshop id, not modname!) to be downloaded from steam and used as mods.
      *
      * Can be either a list of strings i.e. ["123456","654321"]
