@@ -40,8 +40,18 @@ $dark-light: #3c3c3c;
 .lm-line {
   font-family: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
   font-size: 12.5px;
-  line-height: 1.6;
+  line-height: 1.6;   // 12.5 * 1.6 = 20px - MUST match itemSize in the .ts
   padding: 0 6px;
+}
+
+// ---- the list must never collapse -------------------------------------------
+// cdk-virtual-scroll renders NOTHING at zero height, and its height here arrives
+// through a chain of parents (.dz-fill-col > .card.dz-fill > .card-body.h-100).
+// Break any link and the log goes blank while the footer still cheerfully
+// reports "8,263 lines" - which is exactly how this presented. A floor turns
+// that silent failure into a short but working list.
+cdk-virtual-scroll-viewport {
+  min-height: 320px;
 }
 // leading HH:MM:SS.mmm dimmed so the message itself leads the eye
 .lm-time { color: #6c757d; margin-right: 6px; }

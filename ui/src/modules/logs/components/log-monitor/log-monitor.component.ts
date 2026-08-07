@@ -13,7 +13,16 @@ export class LogMonitorComponent implements OnInit, OnDestroy, AfterViewInit {
 
     public title: string = 'Logs';
     @ViewChild('scrollView') public container!: any;
-    public itemSize = 1;
+    /**
+     * Row height in px. MUST match the CSS or the list misbehaves.
+     * .lm-line is font-size 12.5px * line-height 1.6, no vertical padding = 20.
+     *
+     * ⚠ This was 1. cdk-virtual-scroll uses itemSize to decide how many rows fit
+     * and where to position each one, so at 1 it believed twenty rows fitted in
+     * every twenty pixels and stacked them on top of each other. Change the font
+     * size or line-height in the scss and this has to change with it.
+     */
+    public itemSize = 20;
     public lockToEnd: boolean = true;
 
     /** Everything we hold; `messages` is the filtered view the list renders. */
