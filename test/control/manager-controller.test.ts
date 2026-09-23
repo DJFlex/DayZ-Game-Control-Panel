@@ -4,7 +4,7 @@ import * as sinon from 'sinon';
 import { ImportMock } from 'ts-mock-imports';
 import { ManagerController } from '../../src/control/manager-controller';
 import { VALID_CONFIG } from '../config/config-validate.test';
-import { StubInstance, disableConsole, enableConsole, stubClass } from '../util';
+import { StubInstance, disableConsole, enableConsole, sleep, stubClass } from '../util';
 import { Manager } from '../../src/control/manager';
 import { expect } from '../expect';
 import { DependencyContainer, Lifecycle, container, injectable, singleton } from 'tsyringe';
@@ -162,6 +162,70 @@ describe('Test class ManagerController', () => {
 
         expect(testStateful.stop.called).to.be.true;
         expect(manager.initDone).to.be.false;
-        
+
+    });
+
+    it('ManagerController-reloadQueuedOnce', async () => {
+
+        container.register(TestStateful, TestStateful, { lifecycle: Lifecycle.Singleton });
+        const testStateful = container.resolve(TestStateful);
+
+        // a reload loop here never leaves the microtask queue and would hang mocha, so cap it
+        testStateful.start.callsFake(() => {
+            if (testStateful.start.callCount > 10) {
+                manager.reloadWaiting = false;
+            }
+        });
+
+        configWatcher.watch.resolves(new Config());
+
+        steamCmd.checkSteamCmd.resolves(true);
+        steamCmd.checkServer.resolves(true);
+        steamCmd.checkMods.resolves(true);
+        steamCmd.installMods.resolves(true);
+
+        const controller = injector.resolve(ManagerController);
+        await controller.start();
+        const onConfigChange = configWatcher.watch.firstCall.args[0];
+
+        // one large write can fire two change events, the second one while the first reload runs
+        onConfigChange(new Config());
+        onConfigChange(new Config());
+        await sleep(10);
+
+        // initial start + the reload + exactly one queued reload
+        expect(testStateful.start.callCount).to.equal(3);
+        expect(manager.reloadWaiting).to.be.false;
+        expect(manager.reloading).to.be.false;
+    });
+
+    it('ManagerController-reloadAfterFailure', async () => {
+
+        container.register(TestStateful, TestStateful, { lifecycle: Lifecycle.Singleton });
+        const testStateful = container.resolve(TestStateful);
+
+        configWatcher.watch.resolves(new Config());
+
+        steamCmd.checkSteamCmd.resolves(true);
+        steamCmd.checkServer.resolves(true);
+        steamCmd.checkMods.resolves(true);
+        steamCmd.installMods.resolves(true);
+
+        const controller = injector.resolve(ManagerController);
+        await controller.start();
+        const onConfigChange = configWatcher.watch.firstCall.args[0];
+
+        configHelper.createDefaultConfig.throws(new Error('test'));
+        onConfigChange(new Config());
+        await sleep(10);
+
+        expect(manager.reloading).to.be.false;
+
+        // the next change must still reload
+        configHelper.createDefaultConfig.resetBehavior();
+        onConfigChange(new Config());
+        await sleep(10);
+
+        expect(testStateful.start.callCount).to.equal(2);
     });
 });

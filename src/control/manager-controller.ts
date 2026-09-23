@@ -282,10 +282,13 @@ export class ManagerController {
             () => {
                 this.manager.reloading = false;
                 if (this.manager.reloadWaiting) {
+                    // consume the queued change, otherwise every reload queues the next one forever
+                    this.manager.reloadWaiting = false;
                     void this.reloadConfig();
                 }
             },
             (e) => {
+                this.manager.reloading = false;
                 this.log.log(LogLevel.ERROR, 'Reloading failed', e);
             },
         );
