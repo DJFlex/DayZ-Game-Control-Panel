@@ -1,0 +1,96 @@
+<sb-layout-dashboard>
+    <sb-dashboard-head title="Maps" [hideBreadcrumbs]="false"></sb-dashboard-head>
+
+    <div class="mp-page">
+
+        <div class="mp-alert bad" *ngIf="panelDown">
+            The panel did not answer. Trying again…
+        </div>
+        <div class="mp-alert warn" *ngIf="fileError">
+            {{ fileError }}
+        </div>
+
+        <div class="mp-top" *ngIf="loaded">
+            <div class="mp-top-text">
+                {{ maps.length }} map{{ maps.length === 1 ? '' : 's' }}
+                <span class="mp-muted" *ngIf="lastPoll">· checked {{ lastPoll | date:'HH:mm:ss' }}</span>
+            </div>
+            <button
+                class="mp-btn stop small"
+                *ngIf="testMapsRunning.length > 1"
+                (click)="stopAllTestMaps()"
+            >
+                <fa-icon [icon]="['fas','stop']"></fa-icon>
+                Stop all test maps
+            </button>
+        </div>
+
+        <div class="mp-loading" *ngIf="!loaded">
+            <fa-icon [icon]="['fas','spinner']" [classes]="['fa-spin']"></fa-icon>
+            Checking the maps…
+        </div>
+
+        <div class="mp-grid">
+            <div class="mp-card" *ngFor="let m of maps; trackBy: trackById" [class.is-on]="m.state === 'running'">
+
+                <div class="mp-card-head">
+                    <span class="mp-dot" [ngClass]="stateClass(m)"></span>
+                    <div class="mp-name">{{ m.name }}</div>
+                    <span class="mp-tag" *ngIf="m.kind === 'panel'">main</span>
+                    <span class="mp-tag" *ngIf="m.kind === 'remote'">other PC</span>
+                </div>
+
+                <div class="mp-state" [ngClass]="stateClass(m)">{{ stateLabel(m) }}</div>
+
+                <div class="mp-facts">
+                    <div class="mp-fact">
+                        <fa-icon [icon]="['fas','user']"></fa-icon>
+                        <span *ngIf="m.players !== undefined && m.players !== null; else noPlayers">
+                            {{ m.players }}<span class="mp-muted"> / {{ m.maxPlayers }}</span> players
+                        </span>
+                        <ng-template #noPlayers><span class="mp-muted">— players</span></ng-template>
+                    </div>
+                    <div class="mp-fact" *ngIf="m.port">
+                        <fa-icon [icon]="['fas','satellite-dish']"></fa-icon>
+                        <span>port {{ m.port }}</span>
+                    </div>
+                    <div class="mp-fact" *ngIf="m.startedAt && m.state !== 'stopped'">
+                        <fa-icon [icon]="['fas','clock']"></fa-icon>
+                        <span>up since {{ m.startedAt.slice(11, 16) }}</span>
+                    </div>
+                </div>
+
+                <div class="mp-note warn" *ngIf="m.problem">{{ m.problem }}</div>
+                <div class="mp-note bad" *ngIf="m.lastError">{{ m.lastError }}</div>
+                <div class="mp-note" *ngIf="messages.get(m.id) as msg" [class.bad]="!msg.ok">{{ msg.message }}</div>
+
+                <div class="mp-actions" *ngIf="m.kind !== 'remote'">
+                    <button
+                        class="mp-btn start"
+                        *ngIf="m.state === 'stopped' || m.state === 'offline'"
+                        [disabled]="!m.canStart || busy.has(m.id)"
+                        (click)="start(m)"
+                    >
+                        <fa-icon *ngIf="!busy.has(m.id)" [icon]="['fas','play']"></fa-icon>
+                        <fa-icon *ngIf="busy.has(m.id)" [icon]="['fas','spinner']" [classes]="['fa-spin']"></fa-icon>
+                        Start
+                    </button>
+                    <button
+                        class="mp-btn stop"
+                        *ngIf="m.state !== 'stopped' && m.state !== 'offline'"
+                        [disabled]="!m.canStop || busy.has(m.id)"
+                        (click)="stop(m)"
+                    >
+                        <fa-icon *ngIf="!busy.has(m.id) && m.state !== 'stopping'" [icon]="['fas','stop']"></fa-icon>
+                        <fa-icon *ngIf="busy.has(m.id) || m.state === 'stopping'" [icon]="['fas','spinner']" [classes]="['fa-spin']"></fa-icon>
+                        {{ m.state === 'stopping' ? 'Stopping…' : 'Stop' }}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mp-foot" *ngIf="filePath">
+            Add a map: add one entry to <code>{{ filePath }}</code>. It shows up here on the next check.
+        </div>
+    </div>
+</sb-layout-dashboard>

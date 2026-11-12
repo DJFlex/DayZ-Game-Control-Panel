@@ -1,0 +1,82 @@
+{
+  "mods": [
+    "@CF",
+    "@Big-G-Admin",
+    "@Code-Lock",
+    "@Party-On-",
+    "@RoZebud",
+    "@ChairLift",
+    "@ReadableBooks",
+    "@ReadableBooks_Books",
+    "@WritableBooks",
+    "@AnimatedScreen",
+    "@RetroArcade",
+    "@PoolTable",
+    "@ArcadeMachine",
+    "@Australian_Currency",
+    "@Jukebox",
+    "@Jukebox_Singles",
+    "@BigGrampaVinyl",
+    "@SitChairs",
+    "@puba",
+    "@AdminGear",
+    "@BigG_Waterfalls",
+    "@RZ_Kangaroo",
+    "@RZ_Kookaburra",
+    "@RZ_Koala",
+    "@RZ_Cockatoo",
+    "@RZ_Bogans",
+    "@RZ_Magpie",
+    "@RZ_Snake",
+    "@RZ_Spider",
+    "@RZ_Dingo",
+    "@RZ_Emu",
+    "@RZ_Seagull",
+    "@RZ_Possum",
+    "@RZ_Insects",
+    "@RZ_Food",
+    "@RZ_Vehicles",
+    "@RZ_Props",
+    "@milkbar",
+    "@PVE130Fix",
+    "@BigGSoftCrash",
+    "@RZ_LoadingScreen",
+    "@RZ_Survivors",
+    "@BigG_MapLink",
+    "@HamiltonIsland",
+    "@RZ_Palms"
+  ],
+  "params": [
+    "-dologs",
+    "-adminlog",
+    "-freezecheck"
+  ],
+  "maps": [
+    {
+      "id": "rozebud",
+      "name": "RoZebud",
+      "panelServer": true,
+      "queryPort": 2305
+    },
+    {
+      "id": "chernarus",
+      "name": "Chernarus (Map Link test)",
+      "exe": "DayZServer_MapLink.exe",
+      "config": "serverDZ_MapLink.cfg",
+      "port": 2402,
+      "queryPort": 2405,
+      "rconPort": 2406,
+      "profiles": "SC_MapLink"
+    },
+    {
+      "id": "hamilton",
+      "name": "Hamilton Island (Map Link test)",
+      "exe": "DayZServer_MapLinkHam.exe",
+      "config": "serverDZ_MapLinkHamilton.cfg",
+      "port": 2502,
+      "queryPort": 2505,
+      "rconPort": 2506,
+      "profiles": "SC_MapLinkHamilton"
+    }
+  ]
+}

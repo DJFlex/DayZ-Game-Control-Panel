@@ -312,6 +312,11 @@ export class WindowsProcessFetcher extends IService implements IProcessFetcher {
     }
 
     public async getProcessList(exeName?: string): Promise<ProcessEntry[]> {
+        return this.getProcessListMatching((p) => this.paths.samePath(p, exeName));
+    }
+
+    /** One process query, keeping the processes whose executable path passes `match`. */
+    public async getProcessListMatching(match: (exePath: string) => boolean): Promise<ProcessEntry[]> {
         const result = await this.spawner.spawnForOutput(
             'powershell',
             this.buildProcessQueryArgs(),
@@ -340,7 +345,7 @@ export class WindowsProcessFetcher extends IService implements IProcessFetcher {
                         x.forEach((y) => proc = merge(proc, { [y[0]]: y[1] }));
                         return proc;
                     })
-                    .filter((x) => this.paths.samePath(x?.ExecutablePath, exeName)),
+                    .filter((x) => match(x?.ExecutablePath)),
             );
         }
         return procs;

@@ -54,6 +54,12 @@ const routes: Routes = [
             import('../modules/settings/settings-routing.module').then((m) => m.SettingsRoutingModule),
     },
     {
+        path: 'dashboard/maps',
+        canActivate: [AuthGuard],
+        loadChildren: () =>
+            import('../modules/maps/maps-routing.module').then((m) => m.MapsRoutingModule),
+    },
+    {
         path: 'dashboard/map',
         canActivate: [AuthGuard],
         loadChildren: () =>

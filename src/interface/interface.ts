@@ -17,6 +17,7 @@ import { makeTable } from '../util/table';
 import { constants as HTTP } from 'http2';
 import { ConfigFileHelper } from '../config/config-file-helper';
 import { ServerDetector } from '../services/server-detector';
+import { MapServers } from '../services/map-servers';
 
 /* istanbul ignore next */
 const parseBoolean = (val: any): boolean => true === val || 'true' === val;
@@ -43,6 +44,7 @@ export class Interface extends IService {
         private backup: Backups,
         private missionFiles: MissionFiles,
         private configFileHelper: ConfigFileHelper,
+        private mapServers: MapServers,
     ) {
         super(loggerFactory.createLogger('Manager'));
         this.setupCommandMap();
@@ -225,7 +227,11 @@ export class Interface extends IService {
                 method: 'post',
                 level: 'manage',
                 noResponse: true,
-                action: () => this.monitor.restartLock = false,
+                action: () => {
+                    // also lift a hold the Maps page left, else Resume would do nothing
+                    this.mapServers.releaseMapsServerLock();
+                    this.monitor.restartLock = false;
+                },
             })],
             ['metrics', RequestTemplate.build({
                 method: 'get',
@@ -415,6 +421,28 @@ export class Interface extends IService {
                 disableDiscord: true,
                 params: [{ name: 'dir', location: 'query' }],
                 action: async (req, params) => this.missionFiles.readProfileDir(params.dir),
+            })],
+            // Maps page: every map on this machine (maps.json), start/stop one at a time.
+            // Results are objects so they are never mistaken for "no results".
+            ['maps', RequestTemplate.build({
+                method: 'get',
+                level: 'view',
+                disableDiscord: true,
+                action: () => this.mapServers.getStatus(),
+            })],
+            ['mapstart', RequestTemplate.build({
+                method: 'post',
+                level: 'manage',
+                disableDiscord: true,
+                params: [{ name: 'id' }],
+                action: (req, params) => this.mapServers.startMap(String(params.id)),
+            })],
+            ['mapstop', RequestTemplate.build({
+                method: 'post',
+                level: 'manage',
+                disableDiscord: true,
+                params: [{ name: 'id' }],
+                action: (req, params) => this.mapServers.stopMap(String(params.id)),
             })],
             ['serverinfo', RequestTemplate.build({
                 method: 'get',

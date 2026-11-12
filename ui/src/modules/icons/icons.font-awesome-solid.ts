@@ -63,6 +63,9 @@ import {
     faEye,
     faEyeSlash,
     faUserShield,
+    faPlay,
+    faStop,
+    faGlobeAsia,
 } from '@fortawesome/free-solid-svg-icons';
 
 export const fontAwesomeSolidIcons = {
@@ -128,4 +131,7 @@ export const fontAwesomeSolidIcons = {
     faEye,
     faEyeSlash,
     faUserShield,
+    faPlay,
+    faStop,
+    faGlobeAsia,
 };

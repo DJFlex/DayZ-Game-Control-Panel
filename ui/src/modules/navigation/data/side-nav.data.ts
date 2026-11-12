@@ -13,6 +13,7 @@ export const sideNavSections: SideNavSection[] = [
     {
         text: 'MANAGE',
         items: [
+            'maps',
             'players',
             'maintenance',
             'map',
@@ -39,6 +40,11 @@ export const sideNavItems: SideNavItems = {
         icon: 'chart-area',
         text: 'System',
         link: '/dashboard/system',
+    },
+    maps: {
+        icon: 'globe-asia',
+        text: 'Maps',
+        link: '/dashboard/maps',
     },
     players: {
         icon: 'user',
