@@ -48,6 +48,8 @@ export interface MapEntryConfig {
     serverMods?: string[];
     /** Default: the top-level `params` list. */
     params?: string[];
+    /** Card background: a picture file in dsm\map-images (e.g. "hamilton.jpg") or an http(s) URL. */
+    image?: string;
 }
 
 export interface MapsFile {
@@ -75,6 +77,8 @@ export interface MapStatus {
     lastError?: string;
     canStart: boolean;
     canStop: boolean;
+    /** URL the page can show as the card background. */
+    image?: string;
 }
 
 export interface MapActionResult {
@@ -366,7 +370,10 @@ export class MapServers extends IService {
         const gen = this.generation;
         const entries = file.maps;
         const localEntries = entries.filter((x) => this.kindOf(x) === 'local' && x.exe);
-        const procs = await this.getLocalProcesses(localEntries.map((x) => this.exePathOf(x)));
+        const panelExe = this.manager.getServerExePath();
+        // the panel's own server is in the same query, so its card sees a stop straight away
+        // (the monitor only notices on its next poll, up to 30 s later)
+        const procs = await this.getLocalProcesses([...localEntries.map((x) => this.exePathOf(x)), panelExe]);
 
         const maps = await Promise.all(entries.map(async (entry): Promise<MapStatus> => {
             const kind = this.kindOf(entry);
@@ -388,6 +395,7 @@ export class MapServers extends IService {
                 serverName: a2s?.name,
                 world: a2s?.map,
                 problem,
+                image: this.imageUrlOf(entry.image),
                 lastError: this.lastError.get(entry.id),
                 canStart: false,
                 canStop: false,
@@ -396,6 +404,7 @@ export class MapServers extends IService {
             if (kind === 'panel') {
                 const st = this.monitor.serverState;
                 const held = this.monitor.restartLock || this.fs.existsSync(this.serverLockPath());
+                const panelUp = procs.some((p) => this.paths.samePath(p.ExecutablePath, panelExe));
                 if (st === ServerState.STARTED) {
                     const ready = this.isReady(
                         entry.id,
@@ -404,7 +413,13 @@ export class MapServers extends IService {
                         () => this.rptSaysReady(entry.id, this.manager.getProfilesPath(), this.manager.config?.serverExe ?? 'DayZServer_x64.exe'),
                     );
                     // not answering while held = it is on its way down, not coming up
-                    status.state = ready ? 'running' : (held ? 'stopping' : 'starting');
+                    if (ready) {
+                        status.state = 'running';
+                    } else if (held) {
+                        status.state = panelUp ? 'stopping' : 'stopped';
+                    } else {
+                        status.state = 'starting';
+                    }
                 } else if (st === ServerState.STARTING) {
                     status.state = 'starting';
                 } else if (st === ServerState.STOPPING) {
@@ -469,6 +484,23 @@ export class MapServers extends IService {
             this.statusCache = { ts: Date.now(), result: maps };
         }
         return { maps, fileError: error, filePath: this.getMapsFilePath() };
+    }
+
+    private static readonly IMAGE_FILE = /^[\w.-]+\.(jpe?g|png|webp)$/i;
+
+    /** maps.json `image` -> what the page loads: URLs as they are, file names from the public /map-images route. */
+    private imageUrlOf(image?: string): string | undefined {
+        if (!image) return undefined;
+        if (/^https?:\/\//i.test(image)) return image;
+        const name = path.basename(image);
+        return MapServers.IMAGE_FILE.test(name) ? `/map-images/${encodeURIComponent(name)}` : undefined;
+    }
+
+    /** Absolute path of a card picture in <panel folder>\map-images, or undefined (bad name / missing). */
+    public resolveImageFile(name: string): string | undefined {
+        if (!name || !MapServers.IMAGE_FILE.test(name) || name !== path.basename(name)) return undefined;
+        const file = path.join(this.paths.cwd(), 'map-images', name);
+        return this.fs.existsSync(file) ? file : undefined;
     }
 
     /** Same file the monitor checks (Monitor.lockPath): while it exists the panel never starts its server. */

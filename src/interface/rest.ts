@@ -18,6 +18,8 @@ import { Listener } from 'eventemitter2';
 import { WebsocketCommand, WebsocketListenerEvent, WebsocketListenerType, WebsocketMessage } from '../types/websocket';
 import { Interface } from './interface';
 import { Branding, BrandingColors } from '../config/config';
+import { container } from 'tsyringe';
+import { MapServers } from '../services/map-servers';
 
 @singleton()
 @injectable()
@@ -283,6 +285,21 @@ export class REST extends IStatefulService {
             '/api/branding',
             /* istanbul ignore next */
             (req, res) => res.json(this.getBranding()),
+        );
+
+        // Public Maps-page card pictures (map satellite postcards, nothing secret). Public because
+        // the page loads them as CSS backgrounds, which cannot carry the Authorization header.
+        this.express.get(
+            '/map-images/:file',
+            /* istanbul ignore next */
+            (req, res) => {
+                const file = container.resolve(MapServers).resolveImageFile(String(req.params.file ?? ''));
+                if (!file) {
+                    res.status(404).end();
+                    return;
+                }
+                res.sendFile(file, { maxAge: 3600000 });
+            },
         );
 
         this.express.get(

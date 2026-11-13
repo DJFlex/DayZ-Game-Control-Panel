@@ -23,6 +23,7 @@ export interface MapStatus {
     lastError?: string;
     canStart: boolean;
     canStop: boolean;
+    image?: string;
 }
 
 export interface MapsReply {

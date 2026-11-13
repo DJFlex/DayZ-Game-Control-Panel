@@ -60,6 +60,13 @@ export class MapsComponent implements OnInit, OnDestroy {
         return this.maps.filter((m) => m.kind === 'local' && m.canStop);
     }
 
+    /** The map's picture under a dark wash, so the card text stays readable. */
+    public cardBackground(m: MapStatus): string | null {
+        if (!m.image) return null;
+        const url = m.image.replace(/["\\]/g, '');
+        return `linear-gradient(180deg, rgba(14,17,21,.55) 0%, rgba(14,17,21,.30) 45%, rgba(14,17,21,.80) 100%), url("${url}")`;
+    }
+
     public stateLabel(m: MapStatus): string {
         switch (m.state) {
             case 'running': return 'Running';
@@ -85,6 +92,19 @@ export class MapsComponent implements OnInit, OnDestroy {
         // eslint-disable-next-line no-alert, no-undef
         if (!confirm(`Stop ${m.name}?${who}`)) return;
         await this.act(m, () => this.mapsService.stop(m.id));
+    }
+
+    /** Every map (the main server included) that is off and can be started. */
+    public get mapsToStart(): MapStatus[] {
+        return this.maps.filter((m) => m.kind !== 'remote' && m.canStart);
+    }
+
+    public async startAllMaps(): Promise<void> {
+        const list = this.mapsToStart;
+        if (!list.length) return;
+        // eslint-disable-next-line no-alert, no-undef
+        if (!confirm(`Start ${list.map((m) => m.name).join(', ')}?`)) return;
+        await Promise.all(list.map((m) => this.act(m, () => this.mapsService.start(m.id))));
     }
 
     public async stopAllTestMaps(): Promise<void> {

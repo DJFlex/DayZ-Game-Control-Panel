@@ -40,6 +40,7 @@ $mp-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
     flex-wrap: wrap;
 }
 .mp-top-text { font-size: 14px; font-weight: 600; }
+.mp-top-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
 .mp-loading { color: $mp-muted; display: flex; gap: 8px; align-items: center; }
 
@@ -50,6 +51,7 @@ $mp-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 }
 
 .mp-card {
+    min-width: 0;
     color: $mp-text;
     background: $mp-card;
     border: 1px solid $mp-card-bd;
@@ -60,6 +62,12 @@ $mp-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
     gap: 12px;
     transition: border-color .2s;
     &.is-on { border-color: rgba(63, 185, 80, .45); }
+    &.has-image {
+        background-size: cover;
+        background-position: center;
+        .mp-name, .mp-fact, .mp-state, .mp-note { text-shadow: 0 1px 3px rgba(0, 0, 0, .95), 0 0 8px rgba(0, 0, 0, .7); }
+        .mp-fact .mp-muted { color: #c9d1d9; }
+    }
 }
 
 .mp-card-head {
@@ -106,6 +114,7 @@ $mp-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 
 .mp-note {
     font-size: 13px;
+    overflow-wrap: anywhere;
     color: $mp-muted;
     &.warn { color: $mp-amber; }
     &.bad { color: $mp-red-text; }
