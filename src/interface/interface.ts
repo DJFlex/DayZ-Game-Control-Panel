@@ -10,6 +10,7 @@ import { ServerState } from '../types/monitor';
 import { SystemReporter } from '../services/system-reporter';
 import { RCON } from '../services/rcon';
 import { SteamCMD } from '../services/steamcmd';
+import { SteamPersonas } from '../services/steam-personas';
 import { CommandMap, Request, RequestTemplate, Response, ResponsePartHandler } from '../types/interface';
 import { IService } from '../types/service';
 import { LogLevel } from '../util/logger';
@@ -40,6 +41,7 @@ export class Interface extends IService {
         private serverDetector: ServerDetector,
         private metrics: Metrics,
         private steamCmd: SteamCMD,
+        private steamPersonas: SteamPersonas,
         private logReader: LogReader,
         private backup: Backups,
         private missionFiles: MissionFiles,
@@ -522,8 +524,63 @@ export class Interface extends IService {
         if (this.acceptsText(req)) {
             return this.rcon.getPlayersRaw();
         }
-        return this.rcon.getPlayers();
+        return this.withPersonaNames(await this.rcon.getPlayers());
     };
+
+    /**
+     * Replace "Survivor" with the player's real Steam name.
+     *
+     * BattlEye reports whatever name the client sent, and some clients send
+     * nothing - those players show as "Survivor", DayZ's default, and become
+     * impossible to tell apart in the admin tools.
+     *
+     * The BE list only carries a BE GUID, which is a one-way hash and cannot be
+     * turned back into a SteamID. The in-game report DOES carry the SteamID64, so
+     * the two are matched by hashing the SteamID64 into a BE GUID - the same
+     * direction the game does it.
+     *
+     * Only ever ADDS information. Any failure leaves the original names untouched:
+     * a Steam outage must never empty the player list.
+     */
+    private async withPersonaNames(players: any[]): Promise<any[]> {
+        try {
+            if (!players?.length) return players;
+
+            // The in-game report is the only place a SteamID64 appears.
+            const recent = await this.metrics.fetchMetrics('INGAME_PLAYERS', Date.now() - (10 * 60 * 1000));
+            const beguidToSteam = new Map<string, string>();
+            for (const entry of recent ?? []) {
+                for (const p of ((entry?.value as any[]) ?? [])) {
+                    if (!p?.id2) continue;
+                    const guid = this.rcon.steam64ToBEGUID(String(p.id2));
+                    if (guid) beguidToSteam.set(guid.toLowerCase(), String(p.id2));
+                }
+            }
+            if (!beguidToSteam.size) return players;
+
+            const wanted = players
+                .map((p) => beguidToSteam.get(String(p?.beguid || '').toLowerCase()))
+                .filter((x) => !!x) as string[];
+            if (!wanted.length) return players;
+
+            const personas = await this.steamPersonas.resolve(wanted);
+            if (!personas.size) return players;
+
+            for (const p of players) {
+                const steamId = beguidToSteam.get(String(p?.beguid || '').toLowerCase());
+                if (!steamId) continue;
+                const persona = personas.get(steamId);
+                if (!persona) continue;
+                p.steamid = steamId;      // useful to the UI, and free here
+                p.beName = p.name;        // keep what BattlEye actually said
+                p.name = persona;
+            }
+            return players;
+        } catch (e: any) {
+            this.log.log(LogLevel.WARN, `Could not add Steam names to the player list: ${e?.message}`);
+            return players;
+        }
+    }
 
     private getBans = async (req: Request): Promise<any> => {
         if (this.acceptsText(req)) {
