@@ -5,6 +5,21 @@ body {
   height: 100%;
 }
 
+// ⚠⚠ app-root MUST carry the height down, or the two rules above do nothing.
+// A custom element defaults to `display: inline` with no height, so the chain
+// html(100%) > body(100%) > app-root(auto) breaks immediately and EVERY
+// `height: 100%` below it - .dz-fill-col, .card-body.h-100, all of it - resolves
+// to auto. Pages then size to their content: the logs card stopped half way down
+// the window with the rest empty, and the virtual-scroll list inside it had no
+// room to fill.
+//
+// This does not force anything to stretch. It only lets the existing full-height
+// classes work as they were written to.
+app-root {
+  display: block;
+  height: 100%;
+}
+
 // ---- Loading skeletons (degraded states) ------------------------------------
 // Shimmering placeholder shown while the first payload is still in flight, so
 // no page has to render "Unknown" or a bare dash. Size it where it is used;

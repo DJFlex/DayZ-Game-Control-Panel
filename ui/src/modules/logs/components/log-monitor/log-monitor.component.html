@@ -43,8 +43,23 @@
     </ng-container>
   </span>
   <span class="lg-foot-r">
-    <span class="lg-err" *ngIf="errorCount">{{ errorCount | number }} errors</span>
-    <span class="lg-warn" *ngIf="warnCount">{{ warnCount | number }} warnings</span>
+    <button type="button" class="lg-count lg-all"
+      [class.on]="severity === 'all'" [attr.aria-pressed]="severity === 'all'"
+      (click)="showAll()" title="Show every line again">
+      All
+    </button>
+    <button type="button" class="lg-count lg-err" *ngIf="errorCount"
+      [class.on]="severity === 'err'" [attr.aria-pressed]="severity === 'err'"
+      (click)="showOnly('err')"
+      [title]="severity === 'err' ? 'Show everything again' : 'Show only the errors'">
+      {{ errorCount | number }} errors
+    </button>
+    <button type="button" class="lg-count lg-warn" *ngIf="warnCount"
+      [class.on]="severity === 'warn'" [attr.aria-pressed]="severity === 'warn'"
+      (click)="showOnly('warn')"
+      [title]="severity === 'warn' ? 'Show everything again' : 'Show only the warnings'">
+      {{ warnCount | number }} warnings
+    </button>
     <button type="button" class="lg-link" (click)="jumpToLatest()">Jump to latest</button>
   </span>
 </div>

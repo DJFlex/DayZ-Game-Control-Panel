@@ -31,7 +31,18 @@ export class LogMonitorComponent implements OnInit, OnDestroy, AfterViewInit {
     public sub?: Subscription;
 
     public filterText: string = '';
-    public errorsOnly: boolean = false;
+
+    /**
+     * Which severity the list is narrowed to. Driven by the footer counts, which
+     * are buttons - clicking "128 errors" shows the errors and clicking it again
+     * puts everything back.
+     */
+    public severity: 'all' | 'err' | 'warn' = 'all';
+
+    /** The toolbar checkbox is just a second way into the error view. */
+    public get errorsOnly(): boolean {
+        return this.severity === 'err';
+    }
 
     public errorCount: number = 0;
     public warnCount: number = 0;
@@ -115,15 +126,18 @@ export class LogMonitorComponent implements OnInit, OnDestroy, AfterViewInit {
     // ---- filtering ----------------------------------------------------------
 
     private passesFilter(log: LogMessage): boolean {
-        if (this.errorsOnly && this.severityClass(log.message) !== 'msg-err') {
-            return false;
+        if (this.severity !== 'all') {
+            const want = this.severity === 'err' ? 'msg-err' : 'msg-warn';
+            if (this.severityClass(log.message) !== want) {
+                return false;
+            }
         }
         const term = this.filterText.trim().toLowerCase();
         return !term || (log.message || '').toLowerCase().includes(term);
     }
 
     public applyFilter(): void {
-        if (!this.filterText.trim() && !this.errorsOnly) {
+        if (!this.filterText.trim() && this.severity === 'all') {
             // no copy needed - nothing is filtered out
             this.messages = this.allMessages;
         } else {
@@ -132,19 +146,36 @@ export class LogMonitorComponent implements OnInit, OnDestroy, AfterViewInit {
         this.scrollToBottom(true);
     }
 
-    public toggleErrorsOnly(): void {
-        this.errorsOnly = !this.errorsOnly;
+    /**
+     * Narrow to one severity, or clear if that severity is already showing.
+     *
+     * The same click filters and unfilters, because the control being clicked is
+     * the count itself - having to hunt for a separate "clear" after clicking a
+     * number is the kind of small dead end this panel keeps being caught by.
+     */
+    public showOnly(kind: 'err' | 'warn'): void {
+        this.severity = this.severity === kind ? 'all' : kind;
         this.applyFilter();
+    }
+
+    /** Back to every line. Leaves any text filter alone - that has its own clear. */
+    public showAll(): void {
+        this.severity = 'all';
+        this.applyFilter();
+    }
+
+    public toggleErrorsOnly(): void {
+        this.showOnly('err');
     }
 
     public clearFilter(): void {
         this.filterText = '';
-        this.errorsOnly = false;
+        this.severity = 'all';
         this.applyFilter();
     }
 
     public get filtered(): boolean {
-        return !!this.filterText.trim() || this.errorsOnly;
+        return !!this.filterText.trim() || this.severity !== 'all';
     }
 
     // ---- download -----------------------------------------------------------

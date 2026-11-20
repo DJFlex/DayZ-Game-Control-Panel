@@ -44,14 +44,23 @@ $dark-light: #3c3c3c;
   padding: 0 6px;
 }
 
-// ---- the list must never collapse -------------------------------------------
-// cdk-virtual-scroll renders NOTHING at zero height, and its height here arrives
-// through a chain of parents (.dz-fill-col > .card.dz-fill > .card-body.h-100).
-// Break any link and the log goes blank while the footer still cheerfully
-// reports "8,263 lines" - which is exactly how this presented. A floor turns
-// that silent failure into a short but working list.
+// ---- how tall the list is ---------------------------------------------------
+// ⚠ Measured against the BROWSER WINDOW, not the parent, and that is deliberate.
+//
+// The inherited chain cannot deliver a height here. layout-dashboard wraps every
+// page in a plain <span> (display: inline), and SB Admin's #layoutSidenav_content
+// uses min-height rather than height - and min-height does NOT let a percentage
+// height on a child resolve. So `main { height: 100% }`, `.card-body.h-100` and
+// `.dz-fill-col` all quietly collapse to auto, the card shrinks to its content,
+// and the log list gets nothing. Giving app-root a height is necessary but not
+// sufficient; fixing it properly means restructuring a template every page uses.
+//
+// 260px is the chrome above and below the list (top nav, breadcrumb, tabs, the
+// viewer's own title bar, its footer, card margin). Anchoring to 100vh means it
+// still grows and shrinks with the window, which is the point.
 cdk-virtual-scroll-viewport {
-  min-height: 320px;
+  height: calc(100vh - 260px);
+  min-height: 280px;   // tiny windows: scroll rather than vanish
 }
 // leading HH:MM:SS.mmm dimmed so the message itself leads the eye
 .lm-time { color: #6c757d; margin-right: 6px; }
@@ -195,8 +204,43 @@ $lg-green:  #3fb950;
   background: #6c757d;
   &.on { background: $lg-green; }
 }
-.lg-err  { color: #f16b79; }
-.lg-warn { color: #ffc107; }
+.lg-err  { color: #f16b79; }   // red - matches the error rows in the list
+.lg-warn { color: #ffc107; }   // amber - matches the warning rows
+.lg-all  { color: #adb5bd; }   // neutral, so the two coloured ones lead the eye
+
+// ---- the counts are buttons -------------------------------------------------
+// Clicking "128 errors" narrows the list to them, clicking again puts it back.
+// They still have to READ as text in the footer, so the button chrome is
+// stripped and the affordance is carried by the cursor, hover and pressed state.
+.lg-count {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  cursor: pointer;
+
+  // ⚠ NO `color` here. These buttons also carry .lg-err / .lg-warn, which are
+  // single-class selectors like this one - so anything set here wins on source
+  // order and flattens the red and the amber to plain footer text. The colour is
+  // the whole point of the counts; leave it to those classes.
+
+  &:hover { background: rgba(255, 255, 255, .07); }
+
+  // Pressed: tinted from the count's own colour so it is obvious WHICH filter
+  // is on when both counts are sitting side by side.
+  &.on {
+    border-color: currentColor;
+    background: rgba(255, 255, 255, .10);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $lg-accent;
+    outline-offset: 1px;
+  }
+}
 .lg-link {
   background: none;
   border: 0;
